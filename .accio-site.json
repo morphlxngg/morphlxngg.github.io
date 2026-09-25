@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "siteId": "k637pnhwenwiof9b",
+  "name": "alexey-portfolio",
+  "kind": "react-vite",
+  "devCommand": "vite",
+  "buildCommand": "vite build",
+  "outputDir": "dist",
+  "entry": "index.html",
+  "createdBy": "accio-site-builder",
+  "createdAt": "2026-09-24T19:43:01.564Z",
+  "siteIdSyncStatus": "synced",
+  "installedAt": "2026-09-24T20:25:49.085Z",
+  "databaseUrl": "",
+  "subdomain": "aleksey-portfolio",
+  "publishedUrl": "https://aleksey-portfolio.site.accio.ai",
+  "publishedAt": "2026-09-24T20:51:46.026Z",
+  "deployId": "dep_1790283030033_e52cc5e7"
+}
