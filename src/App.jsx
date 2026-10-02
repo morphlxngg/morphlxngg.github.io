@@ -21,6 +21,8 @@ const projects = {
   pitstop: { slug: 'pitstop', title: 'Pitstop Barbershop', type: 'Motorsport booking concept', place: 'Riverside, Nairobi', accent: 'red', cover: '/assets/images/pitstop-cover.png', coverAlt: 'Graphite and racing red editorial motorsport barber concept cover', route: '/projects/pitstop', short: 'Sharp looks. Fast pit stops.', summary: 'A motorsport-inspired concept that keeps the pit-crew identity while making service selection and booking more direct on mobile.', challenge: 'The brand has a strong idea, but a long service flow can make the first booking decision feel heavy.', solution: 'A faster pit-lane path: choose the service, understand the experience and enter the booking flow.', external: 'https://pitstopbarbershop.co.ke/', externalLabel: 'Open current site', services: ['The Main Race', 'Bodywork', 'Wheel service', 'The Chicane'] },
 };
 
+const scrollTo = (id) => (e) => { e.preventDefault(); document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' }); };
+
 function Header() {
   const [open, setOpen] = useState(false);
   const close = () => setOpen(false);
@@ -29,10 +31,10 @@ function Header() {
       <div className="hdr-inner">
         <Link className="logo" to="/" onClick={close}>A<span>.</span></Link>
         <nav className={open ? 'nav open' : 'nav'}>
-          <a href="/#work" onClick={close}>Работы</a>
-          <a href="/#pricing" onClick={close}>Цены</a>
-          <a href="/#about" onClick={close}>Обо мне</a>
-          <a href="/#contact" onClick={close}>Контакты</a>
+          <a href="#work" onClick={(e) => { close(); scrollTo('work')(e); }}>Работы</a>
+          <a href="#pricing" onClick={(e) => { close(); scrollTo('pricing')(e); }}>Цены</a>
+          <a href="#about" onClick={(e) => { close(); scrollTo('about')(e); }}>Обо мне</a>
+          <a href="#contact" onClick={(e) => { close(); scrollTo('contact')(e); }}>Контакты</a>
           <a className="nav-cta" href="https://t.me/morphlxng" target="_blank" rel="noreferrer" onClick={close}>Написать <Send size={14} /></a>
         </nav>
         <button className="burger" onClick={() => setOpen(!open)} aria-label="Меню">{open ? <X /> : <Menu />}</button>
@@ -64,8 +66,8 @@ function Home() {
           <h1>Сайты, которые<br /><em>продают за вас.</em></h1>
           <p className="hero-copy">Делаю понятные сайты с характером для барбершопов, салонов и локального бизнеса. Запись в два клика — вместо «позвоните нам».</p>
           <div className="hero-actions">
-            <a className="btn primary" href="#pricing">Смотреть цены</a>
-            <a className="btn ghost" href="#work">Работы <ArrowUpRight size={16} /></a>
+            <a className="btn primary" href="#pricing" onClick={scrollTo('pricing')}>Смотреть цены</a>
+            <a className="btn ghost" href="#work" onClick={scrollTo('work')}>Работы <ArrowUpRight size={16} /></a>
           </div>
           <ContactChips />
         </div>
@@ -194,7 +196,7 @@ export default function App() {
           <a href="https://t.me/morphlxng" target="_blank" rel="noreferrer">t.me/morphlxng</a> · <a href="mailto:nevizhin40@gmail.com">nevizhin40@gmail.com</a>
         </span>
         <span>Концепты · 2026</span>
-        <a href="#top">Наверх ↑</a>
+        <a href="#top" onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>Наверх ↑</a>
       </footer>
     </div>
   );
