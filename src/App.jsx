@@ -1,4 +1,4 @@
-import { ArrowUpRight, BriefcaseBusiness, Check, Clock, ExternalLink, Instagram, Mail, Menu, Send, X } from 'lucide-react';
+import { ArrowUpRight, BriefcaseBusiness, Check, Clock, ExternalLink, Instagram, Mail, Menu, Send, Sparkles, X } from 'lucide-react';
 import { useState } from 'react';
 import { Link, Route, Routes } from 'react-router-dom';
 
