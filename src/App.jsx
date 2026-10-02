@@ -1,6 +1,19 @@
-import { ArrowUpRight, BriefcaseBusiness, CalendarDays, Check, ExternalLink, MapPin, Menu, Scissors, Sparkles, X } from 'lucide-react';
+import { ArrowUpRight, BriefcaseBusiness, Check, Clock, ExternalLink, Instagram, Mail, Menu, Send, X } from 'lucide-react';
 import { useState } from 'react';
 import { Link, Route, Routes } from 'react-router-dom';
+
+const contacts = [
+  { key: 'telegram', label: 'Telegram', value: '@morphlxng', href: 'https://t.me/morphlxng', icon: Send },
+  { key: 'instagram', label: 'Instagram', value: '@morphlxng', href: 'https://instagram.com/morphlxng', icon: Instagram },
+  { key: 'email', label: 'Email', value: 'nevizhin40@gmail.com', href: 'mailto:nevizhin40@gmail.com', icon: Mail },
+];
+
+const pricing = [
+  { name: 'Landing page', price: 'от 15 000 ₽', time: '5–7 дней', featured: false, desc: 'Одностраничный сайт: услуги, цены, мастера и кнопка записи. Идеально для барбершопа или студии.', features: ['Дизайн под ваш бренд', 'Адаптив под телефон', 'Форма или кнопка записи', 'Подключение домена'] },
+  { name: 'Многостраничный сайт', price: 'от 30 000 ₽', time: '10–14 дней', featured: true, desc: 'Полноценный сайт с каталогом услуг, страницами мастеров, галереей работ и онлайн-записью.', features: ['Всё из Landing', 'Страницы услуг и мастеров', 'Онлайн-запись (YClients / Dikidi)', 'SEO-база и аналитика', 'Обучение: как менять контент'] },
+  { name: 'Дизайн-концепт', price: 'от 8 000 ₽', time: '3–5 дней', featured: false, desc: 'Дизайн главной страницы без вёрстки — увидеть свой будущий сайт до старта разработки.', features: ['Дизайн-макет главной', 'Мобильная версия', '2 раунда правок', 'Файлы в Figma'] },
+  { name: 'Запись и настройка', price: 'от 5 000 ₽', time: '1–2 дня', featured: false, desc: 'Подключение онлайн-записи и базовой настройки к уже работающему сайту или профилю.', features: ['Подключение виджета записи', 'Настройка уведомлений', 'Привязка домена и почты'] },
+];
 
 const projects = {
   prestige: { slug: 'prestige', title: 'Prestige Barber Co', type: 'Booking-first website concept', place: 'San Antonio, USA', accent: 'copper', cover: '/assets/images/prestige-cover.png', coverAlt: 'Premium dark editorial barber concept cover with copper accents', route: '/projects/prestige', short: 'Luxury grooming, made easy to book.', summary: 'A premium, mobile-first concept that replaces a temporary website with a clear service overview, location details and a direct booking path.', challenge: 'The public site was marked “Website Under Construction”, leaving the first impression unfinished.', solution: 'A confident landing page with clear services, contact details and a single next step: book an appointment.', external: 'https://booksy.com/en-us/1610801_prestige-barber-co_barber-shop_134789_san-antonio', externalLabel: 'Open booking flow', services: ['Classic cut', 'Fresh fade', 'Beard trim', 'Kids cuts'] },
@@ -8,11 +21,181 @@ const projects = {
   pitstop: { slug: 'pitstop', title: 'Pitstop Barbershop', type: 'Motorsport booking concept', place: 'Riverside, Nairobi', accent: 'red', cover: '/assets/images/pitstop-cover.png', coverAlt: 'Graphite and racing red editorial motorsport barber concept cover', route: '/projects/pitstop', short: 'Sharp looks. Fast pit stops.', summary: 'A motorsport-inspired concept that keeps the pit-crew identity while making service selection and booking more direct on mobile.', challenge: 'The brand has a strong idea, but a long service flow can make the first booking decision feel heavy.', solution: 'A faster pit-lane path: choose the service, understand the experience and enter the booking flow.', external: 'https://pitstopbarbershop.co.ke/', externalLabel: 'Open current site', services: ['The Main Race', 'Bodywork', 'Wheel service', 'The Chicane'] },
 };
 
-function Header() { const [open, setOpen] = useState(false); const close = () => setOpen(false); return <header className="portfolio-header" data-component="site-header"><Link className="portfolio-logo" to="/" onClick={close}>A<span>.</span></Link><button className="portfolio-menu" onClick={() => setOpen(!open)} aria-label="Toggle navigation">{open ? <X /> : <Menu />}</button><nav className={open ? 'portfolio-nav open' : 'portfolio-nav'}><Link to="/" onClick={close}>Work</Link><a href="/#about" onClick={close}>About</a><a href="/#contact" onClick={close}>Contact</a></nav></header>; }
-function ConceptFrame({ accent, label = 'Concept frame — no photography' }) { return <div className={`concept-frame ${accent}`} role="img" aria-label={label}><span className="concept-label">{label}</span><div className="frame-orbit" /><div className="frame-word">ALEXEY<br /><i>design</i></div></div>; }
-function ProjectCover({ project, className = '' }) { return <div className={`project-cover ${project.accent} ${className}`}><img src={project.cover} alt={project.coverAlt} /><span className="cover-overlay" /><span className="cover-index">{project.slug === 'prestige' ? '01' : project.slug === 'day-hair' ? '02' : '03'}</span><span className="cover-caption">Self-initiated concept</span></div>; }
-function ProjectPreview({ project }) { return <section className={`project-preview ${project.accent}`} data-component="interactive-project-preview"><div className="preview-top"><span>Live concept preview</span><span>01 / 04</span></div><div className="preview-hero"><div><span className="preview-brand">{project.title}</span><h2>{project.short}</h2><a className="preview-cta" href={project.external} target="_blank" rel="noreferrer">Book now <ArrowUpRight size={15} /></a></div><div className="preview-symbol">{project.accent === 'green' ? 'DAY' : project.accent === 'red' ? 'PIT' : 'P'}</div></div><div className="preview-services"><div className="preview-label">Choose your service</div>{project.services.map((service, index) => <a href={project.external} target="_blank" rel="noreferrer" key={service}><span>0{index + 1}</span><strong>{service}</strong><ArrowUpRight size={15} /></a>)}</div><div className="preview-footer"><span><MapPin size={14} /> {project.place}</span><a href={project.external} target="_blank" rel="noreferrer">Continue to booking <ExternalLink size={14} /></a></div></section>; }
-function Home() { return <><section className="portfolio-hero" data-component="hero-section"><div><p className="eyebrow"><Sparkles size={15} /> Independent web designer</p><h1>Websites that<br /><em>move people.</em></h1><p className="hero-copy">I design clear, characterful websites for barbershops, salons and local service businesses.</p><a className="button primary" href="#work">See selected work <ArrowUpRight size={18} /></a></div><div className="hero-cover-wrap"><span className="hero-cover-label">Self-initiated portfolio</span><img className="hero-cover" src="/assets/images/hero-cover.png" alt="Editorial portfolio cover — Alexey design" /></div></section><section className="work-section" id="work" data-component="work-grid"><div className="section-label">Selected concepts <span>03 projects</span></div><div className="project-grid">{Object.values(projects).map((project) => <Link className={`project-card ${project.accent}`} to={project.route} key={project.slug}><ProjectCover project={project} /><div className="project-meta"><span>{project.type}</span><ArrowUpRight size={18} /></div><h2>{project.title}</h2><p>{project.place}</p></Link>)}</div></section><section className="about-section" id="about" data-component="about-section"><p className="eyebrow">About</p><h2>Clarity first.<br /><em>Character always.</em></h2><div className="about-cols"><p className="about-lead">I’m Alexey — an independent web designer for service businesses: barbershops, salons and local brands that need a website working as hard as they do.</p><p className="about-text">My work sits between clarity and character. Interfaces stay obvious and fast, while the brand gets just enough personality to be remembered — never a template that looks like everyone else’s.</p></div><div className="about-steps"><div><span>01</span><h3>Understand the offer</h3><p>What you sell, who it’s for and why it’s worth choosing.</p></div><div><span>02</span><h3>Feel the brand</h3><p>Tone, type and color — a look that fits the place and its people.</p></div><div><span>03</span><h3>Make the next step obvious</h3><p>A clear path to booking, calling or walking in.</p></div></div><a className="button secondary" href="#contact">More about working together</a></section><section className="contact-section" id="contact" data-component="contact-section"><div><p className="eyebrow">Available for website projects</p><h2>Have a good<br /><em>project in mind?</em></h2></div><div><p>Tell me what you are building and what needs to work better. I’ll reply with a focused direction.</p><div className="contact-links"><a href="mailto:nevizhin40@gmail.com">nevizhin40@gmail.com <ArrowUpRight size={16} /></a><a href="https://t.me/morphlxng" target="_blank" rel="noreferrer">Telegram — @morphlxng <ArrowUpRight size={16} /></a><a href="https://instagram.com/morphlxng" target="_blank" rel="noreferrer">Instagram — @morphlxng <ArrowUpRight size={16} /></a></div></div></section></>; }
-function ProjectPage({ project }) { return <main className={`project-page ${project.accent}`} data-component="project-page"><Link className="back-link" to="/">← Back to selected work</Link><div className="project-heading"><p className="eyebrow">{project.type} · {project.place}</p><h1>{project.title}</h1><p>{project.summary}</p></div><ProjectCover project={project} className="detail-cover" /><ProjectPreview project={project} /><div className="project-details"><article><span>Challenge</span><h2>{project.challenge}</h2></article><article><span>Direction</span><h2>{project.solution}</h2></article></div><div className="project-actions"><a className="button primary" href={project.external} target="_blank" rel="noreferrer">{project.externalLabel} <ExternalLink size={16} /></a><Link className="button secondary" to="/">View all projects</Link></div><p className="concept-disclaimer"><Check size={15} /> Self-initiated concept redesign — not official client work.</p></main>; }
-function NotFound() { return <main className="not-found"><BriefcaseBusiness size={30} /><h1>Project not found</h1><Link to="/">Back to portfolio</Link></main>; }
-export default function App() { return <div className="portfolio-shell"><Header /><Routes><Route path="/" element={<Home />} /><Route path="/projects/prestige" element={<ProjectPage project={projects.prestige} />} /><Route path="/projects/day-hair" element={<ProjectPage project={projects['day-hair']} />} /><Route path="/projects/pitstop" element={<ProjectPage project={projects.pitstop} />} /><Route path="*" element={<NotFound />} /></Routes><footer className="portfolio-footer" data-component="site-footer"><span>Alexey — web & product design</span><span><a href="https://t.me/morphlxng" target="_blank" rel="noreferrer">t.me/morphlxng</a> · <a href="mailto:nevizhin40@gmail.com">nevizhin40@gmail.com</a></span><span>Concept projects · 2026</span><a href="#top">Back to top ↑</a></footer></div>; }
+function Header() {
+  const [open, setOpen] = useState(false);
+  const close = () => setOpen(false);
+  return (
+    <header className="hdr">
+      <div className="hdr-inner">
+        <Link className="logo" to="/" onClick={close}>A<span>.</span></Link>
+        <nav className={open ? 'nav open' : 'nav'}>
+          <a href="/#work" onClick={close}>Работы</a>
+          <a href="/#pricing" onClick={close}>Цены</a>
+          <a href="/#about" onClick={close}>Обо мне</a>
+          <a href="/#contact" onClick={close}>Контакты</a>
+          <a className="nav-cta" href="https://t.me/morphlxng" target="_blank" rel="noreferrer" onClick={close}>Написать <Send size={14} /></a>
+        </nav>
+        <button className="burger" onClick={() => setOpen(!open)} aria-label="Меню">{open ? <X /> : <Menu />}</button>
+      </div>
+    </header>
+  );
+}
+
+function ContactChips() {
+  return (
+    <div className="chips">
+      {contacts.map((c) => (
+        <a className="chip" key={c.key} href={c.href} target="_blank" rel="noreferrer">
+          <c.icon size={17} />
+          <span><b>{c.label}</b> {c.value}</span>
+          <ArrowUpRight size={14} />
+        </a>
+      ))}
+    </div>
+  );
+}
+
+function Home() {
+  return (
+    <>
+      <section className="hero">
+        <div className="hero-text">
+          <p className="eyebrow"><Sparkles size={14} /> Независимый веб-дизайнер</p>
+          <h1>Сайты, которые<br /><em>продают за вас.</em></h1>
+          <p className="hero-copy">Делаю понятные сайты с характером для барбершопов, салонов и локального бизнеса. Запись в два клика — вместо «позвоните нам».</p>
+          <div className="hero-actions">
+            <a className="btn primary" href="#pricing">Смотреть цены</a>
+            <a className="btn ghost" href="#work">Работы <ArrowUpRight size={16} /></a>
+          </div>
+          <ContactChips />
+        </div>
+        <div className="hero-visual">
+          <img className="hero-cover" src="/assets/images/hero-cover.png" alt="Обложка портфолио — Alexey design" />
+        </div>
+      </section>
+
+      <section className="pricing" id="pricing">
+        <div className="section-head">
+          <p className="eyebrow">Услуги и цены</p>
+          <h2>Прозрачно.<br /><em>Без сюрпризов в счёте.</em></h2>
+          <p className="section-sub">Фиксированная цена до старта работ. Предоплата 50%, остальное — после приёмки.</p>
+        </div>
+        <div className="price-grid">
+          {pricing.map((p) => (
+            <article className={`price-card${p.featured ? ' featured' : ''}`} key={p.name}>
+              {p.featured && <span className="price-badge">Популярный выбор</span>}
+              <h3>{p.name}</h3>
+              <div className="price-row"><span className="price">{p.price}</span><span className="price-time"><Clock size={13} /> {p.time}</span></div>
+              <p className="price-desc">{p.desc}</p>
+              <ul>{p.features.map((f) => <li key={f}><Check size={14} /> {f}</li>)}</ul>
+              <a className="btn primary wide" href="https://t.me/morphlxng" target="_blank" rel="noreferrer">Обсудить в Telegram <Send size={14} /></a>
+            </article>
+          ))}
+        </div>
+        <p className="price-note">Не нашли свой случай? Напишите — соберу индивидуальное предложение под вашу задачу.</p>
+      </section>
+
+      <section className="work" id="work">
+        <div className="section-head">
+          <p className="eyebrow">Избранные концепты</p>
+          <h2>Работы, которые<br /><em>говорят сами.</em></h2>
+          <p className="section-sub">Self-initiated концепты: как я вижу сайты для сервисного бизнеса.</p>
+        </div>
+        <div className="work-grid">
+          {Object.values(projects).map((p) => (
+            <Link className={`work-card ${p.accent}`} to={p.route} key={p.slug}>
+              <div className="work-cover"><img src={p.cover} alt={p.coverAlt} /><span className="work-index">{p.slug === 'prestige' ? '01' : p.slug === 'day-hair' ? '02' : '03'}</span></div>
+              <div className="work-meta"><span>{p.type}</span><ArrowUpRight size={17} /></div>
+              <h3>{p.title}</h3>
+              <p>{p.place}</p>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      <section className="about" id="about">
+        <div className="about-inner">
+          <div>
+            <p className="eyebrow">Обо мне</p>
+            <h2>Ясность прежде всего.<br /><em>Характер — всегда.</em></h2>
+          </div>
+          <div className="about-cols">
+            <p className="about-lead">Я Алексей — независимый веб-дизайнер. Работаю с сервисным бизнесом: барбершопы, салоны, студии, которым нужен сайт, работающий так же усердно, как они сами.</p>
+            <p className="about-text">Мои работы — между ясностью и характером. Интерфейс остаётся очевидным и быстрым, а бренд получает достаточно индивидуальности, чтобы запомниться. Никаких шаблонов «как у всех».</p>
+          </div>
+        </div>
+      </section>
+
+      <section className="contact" id="contact">
+        <p className="eyebrow">Открыт для проектов</p>
+        <h2>Есть идея?<br /><em>Напишите первым.</em></h2>
+        <p className="contact-sub">Расскажите, что строите и что должно работать лучше. Отвечу с конкретным направлением в течение дня.</p>
+        <div className="contact-cards">
+          {contacts.map((c) => (
+            <a className="contact-card" key={c.key} href={c.href} target="_blank" rel="noreferrer">
+              <span className="contact-icon"><c.icon size={20} /></span>
+              <span><b>{c.label}</b><i>{c.value}</i></span>
+              <ArrowUpRight size={16} />
+            </a>
+          ))}
+        </div>
+      </section>
+    </>
+  );
+}
+
+function ProjectPage({ project }) {
+  return (
+    <main className={`project ${project.accent}`}>
+      <Link className="back" to="/">← Назад к работам</Link>
+      <div className="project-head">
+        <p className="eyebrow">{project.type} · {project.place}</p>
+        <h1>{project.title}</h1>
+        <p>{project.summary}</p>
+      </div>
+      <div className="project-cover"><img src={project.cover} alt={project.coverAlt} /></div>
+      <div className="project-cols">
+        <article><span>Задача</span><h2>{project.challenge}</h2></article>
+        <article><span>Решение</span><h2>{project.solution}</h2></article>
+      </div>
+      <div className="project-actions">
+        <a className="btn primary" href={project.external} target="_blank" rel="noreferrer">{project.externalLabel} <ExternalLink size={15} /></a>
+        <Link className="btn ghost" to="/">Все работы</Link>
+      </div>
+      <p className="project-note"><Check size={14} /> Self-initiated концепт — не официальный кейс клиента.</p>
+    </main>
+  );
+}
+
+function NotFound() {
+  return (
+    <main className="nf">
+      <BriefcaseBusiness size={28} />
+      <h1>Страница не найдена</h1>
+      <Link to="/">Вернуться в портфолио</Link>
+    </main>
+  );
+}
+
+export default function App() {
+  return (
+    <div className="shell">
+      <Header />
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/projects/prestige" element={<ProjectPage project={projects.prestige} />} />
+        <Route path="/projects/day-hair" element={<ProjectPage project={projects['day-hair']} />} />
+        <Route path="/projects/pitstop" element={<ProjectPage project={projects.pitstop} />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+      <footer className="ftr">
+        <span>Alexey — web & product design</span>
+        <span className="ftr-links">
+          <a href="https://t.me/morphlxng" target="_blank" rel="noreferrer">t.me/morphlxng</a> · <a href="mailto:nevizhin40@gmail.com">nevizhin40@gmail.com</a>
+        </span>
+        <span>Концепты · 2026</span>
+        <a href="#top">Наверх ↑</a>
+      </footer>
+    </div>
+  );
+}
