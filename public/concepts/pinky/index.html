@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PINKY — сеть студий маникюра, Воронеж</title>
+<style>
+:root{
+  --bg:#fff7fa; --card:#ffffff; --line:#ffd6e8;
+  --text:#33101f; --muted:#94647a; --pink:#ff2d8a; --pink2:#ff7ab8; --deep:#2b0a1a;
+}
+*{box-sizing:border-box;margin:0}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1100px;margin:auto;width:calc(100% - 48px)}
+header{position:sticky;top:0;background:rgba(255,247,250,.9);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);z-index:5}
+.hd{display:flex;align-items:center;justify-content:space-between;height:66px}
+.logo{font-size:22px;font-weight:900;letter-spacing:.14em;color:var(--deep)}
+.logo b{color:var(--pink)}
+.nav{display:flex;gap:24px;font-size:13.5px;color:var(--muted)}
+.nav a{color:inherit;text-decoration:none}
+.cta{padding:10px 20px;border-radius:999px;background:var(--pink);color:#fff;font-weight:700;font-size:13px;text-decoration:none}
+
+.hero{display:grid;grid-template-columns:1.05fr .95fr;gap:56px;align-items:center;padding:70px 0}
+.tag{display:inline-block;padding:7px 14px;border:1px solid var(--line);border-radius:999px;color:var(--pink);background:#fff;font:700 11px/1 monospace;letter-spacing:.12em;text-transform:uppercase}
+h1{font-size:clamp(44px,6.2vw,74px);line-height:1;letter-spacing:-.03em;margin:22px 0 0;font-weight:900;color:var(--deep)}
+h1 em{color:var(--pink);font-style:normal}
+.sub{margin:22px 0 30px;color:var(--muted);font-size:16.5px;line-height:1.7;max-width:440px}
+.btns{display:flex;gap:12px;flex-wrap:wrap}
+.btn{padding:15px 26px;border-radius:999px;font-weight:700;font-size:14px;text-decoration:none}
+.btn.p{background:var(--pink);color:#fff;box-shadow:0 8px 24px rgba(255,45,138,.25)}
+.btn.g{border:1.5px solid var(--line);color:var(--deep);background:#fff}
+.meta{display:flex;gap:30px;margin-top:38px;flex-wrap:wrap}
+.meta div b{display:block;font-size:17px;font-weight:800}
+.meta div{color:var(--muted);font-size:12.5px}
+
+.art{position:relative;border-radius:24px;overflow:hidden;aspect-ratio:4/5;background:
+ radial-gradient(circle at 80% 15%, #ffd3e8 0%, transparent 45%),
+ radial-gradient(circle at 10% 85%, #ffe1ee 0%, transparent 45%),
+ linear-gradient(160deg,#ff8ec4,#ff2d8a)}
+.art .heart{position:absolute;font-size:34px;opacity:.35}
+.art .big{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px}
+.art .big span{font-size:clamp(64px,8vw,100px);font-weight:900;letter-spacing:-.02em;color:#fff;text-shadow:0 4px 30px rgba(180,0,90,.35)}
+.art .big i{font-style:normal;color:#fff;opacity:.9;font-weight:600;font-size:15px;letter-spacing:.28em;text-transform:uppercase}
+.art .lbl{position:absolute;top:18px;left:20px;color:rgba(255,255,255,.85);font:700 10px/1 monospace;letter-spacing:.1em}
+.art .stick{position:absolute;bottom:-30px;right:-30px;width:140px;height:140px;border-radius:50%;background:rgba(255,255,255,.16)}
+
+.promo{display:flex;align-items:center;gap:18px;background:var(--deep);border-radius:18px;padding:18px 24px;color:#fff;margin-top:38px;max-width:460px}
+.promo .fire{font-size:26px}
+.promo b{font-size:15px}
+.promo p{color:#ffb7d5;font-size:12.5px;margin-top:3px}
+
+h2.sec{font-size:clamp(28px,3.8vw,42px);letter-spacing:-.03em;font-weight:900;color:var(--deep)}
+.sec-head{padding:70px 0 36px}
+.services{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;padding-bottom:70px}
+.svc{background:var(--card);border:1.5px solid var(--line);border-radius:20px;padding:26px 22px;transition:.2s}
+.svc:hover{transform:translateY(-3px);box-shadow:0 14px 30px rgba(255,45,138,.12)}
+.svc .no{color:var(--pink);font:800 11px/1 monospace;letter-spacing:.1em}
+.svc h3{margin:14px 0 8px;font-size:18px;color:var(--deep)}
+.svc p{color:var(--muted);font-size:13.5px;line-height:1.6}
+.svc .price{margin-top:16px;font-weight:900;color:var(--pink);font-size:17px}
+
+.cta-band{display:grid;grid-template-columns:1.2fr .8fr;gap:36px;align-items:center;background:linear-gradient(135deg,#ff4d9e,#ff2d8a);border-radius:24px;padding:42px 44px;margin-bottom:70px;color:#fff}
+.cta-band h2{font-size:clamp(24px,3.2vw,36px);letter-spacing:-.03em;line-height:1.08}
+.cta-band p{margin-top:12px;color:#ffd7ea;line-height:1.6;font-size:14px}
+.ph{display:flex;flex-direction:column;gap:12px}
+.ph a{display:flex;align-items:center;gap:14px;padding:15px 20px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.3);border-radius:14px;text-decoration:none;backdrop-filter:blur(4px)}
+.ph a:hover{background:rgba(255,255,255,.22)}
+.ph .ic{width:40px;height:40px;border-radius:10px;background:rgba(255,255,255,.2);display:grid;place-items:center;font-size:17px}
+.ph b{display:block;font-size:14px}
+.ph i{display:block;font-style:normal;color:#ffd7ea;font-size:12.5px;margin-top:2px}
+
+footer{border-top:1px solid var(--line);padding:24px 0 32px;color:var(--muted);font-size:12.5px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px}
+footer a{color:var(--pink);text-decoration:none}
+
+@media (max-width:900px){
+  .hero{grid-template-columns:1fr;gap:36px;padding:48px 0}
+  .services{grid-template-columns:1fr;gap:14px}
+  .cta-band{grid-template-columns:1fr;gap:26px;padding:32px 26px}
+  .nav{display:none}
+}
+@media (max-width:600px){
+  .wrap{width:calc(100% - 36px)}
+  h1{font-size:42px}
+  .art{aspect-ratio:1/1}
+  .art .big span{font-size:58px}
+}
+</style>
+</head>
+<body>
+<header><div class="wrap hd">
+  <div class="logo">PINKY<b>.</b></div>
+  <nav class="nav"><a href="#s">Услуги</a><a href="#c">Запись</a><a class="cta" href="tel:+74732052676">Записаться</a></nav>
+</div></header>
+
+<main class="wrap">
+  <section class="hero">
+    <div>
+      <span class="tag">Сеть студий · Воронеж</span>
+      <h1>Маникюр, который<br><em>хочется показать.</em></h1>
+      <p class="sub">Сеть студий маникюра и педикюра в Воронеже: аккуратность, стерильность и дизайн, за который ставят лайки. Запись — в один клик.</p>
+      <div class="btns">
+        <a class="btn p" href="tel:+74732052676">Записаться</a>
+        <a class="btn g" href="https://vk.ru/pinky_vrn" target="_blank">Мы во ВКонтакте</a>
+      </div>
+      <div class="meta">
+        <div><b>6 500+</b>подписчиков</div>
+        <div><b>Сеть</b>несколько студий</div>
+        <div><b>4.9 ★</b>рейтинг на картах</div>
+      </div>
+      <div class="promo"><span class="fire">🎁</span><div><b>Скидка до 20% новым клиентам</b><p>Маникюр + подарок на первый визит — успей до конца месяца</p></div></div>
+    </div>
+    <div class="art">
+      <span class="heart" style="top:12%;left:8%">💅</span>
+      <span class="heart" style="top:20%;right:10%">💖</span>
+      <span class="heart" style="bottom:16%;left:12%">✨</span>
+      <div class="stick"></div>
+      <span class="lbl">NAIL STUDIO NETWORK</span>
+      <div class="big"><span>PINKY</span><i>voronezh</i></div>
+    </div>
+  </section>
+
+  <section id="s">
+    <div class="sec-head"><span class="tag">Услуги</span><h2 class="sec">Что мы делаем</h2></div>
+    <div class="services">
+      <div class="svc"><span class="no">/ 01</span><h3>Маникюр с покрытием</h3><p>Аппаратный и комбинированный маникюр, гель-лак premium-брендов. Идеальные блики — наша визитка.</p><div class="price">от 1 100 ₽</div></div>
+      <div class="svc"><span class="no">/ 02</span><h3>Педикюр</h3><p>В 4 руки без доплат. Аккуратность и уход, после которого хочется снять кроссовки.</p><div class="price">от 1 600 ₽</div></div>
+      <div class="svc"><span class="no">/ 03</span><h3>Дизайн ногтей</h3><p>От минимализма до арт-покрытий. Приноси референс — повторим или придумаем лучше.</p><div class="price">от 300 ₽</div></div>
+    </div>
+  </section>
+
+  <section id="c" class="cta-band">
+    <div>
+      <h2>Запишись<br>в один клик</h2>
+      <p>Выбери удобную студию и время — администратор подтвердит запись в течение 15 минут.</p>
+    </div>
+    <div class="ph">
+      <a href="tel:+74732052676"><span class="ic">✆</span><span><b>+7 (473) 205-26-76</b><i>Звонок или сообщение</i></span></a>
+      <a href="https://vk.ru/pinky_vrn" target="_blank"><span class="ic">✉</span><span><b>vk.ru/pinky_vrn</b><i>Пишите в сообщения группы</i></span></a>
+    </div>
+  </section>
+</main>
+
+<footer><div class="wrap" style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;width:100%">
+  <span>PINKY · Сеть студий маникюра · Воронеж</span>
+  <span>Концепт-макет · <a href="https://morphlxngg.github.io/" target="_blank">сделал Alexey Design</a></span>
+</div></footer>
+</body>
+</html>
