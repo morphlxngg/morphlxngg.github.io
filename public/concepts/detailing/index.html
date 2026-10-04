@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>APEX Detailing — детейлинг-студия</title>
+<style>
+:root{
+  --bg:#07090d; --surface:#0e1219; --line:rgba(130,180,255,.12);
+  --text:#eef3fa; --muted:#8a99ad; --accent:#3fa9ff; --accent2:#8fd0ff;
+}
+*{box-sizing:border-box;margin:0}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1100px;margin:auto;width:calc(100% - 48px)}
+header{border-bottom:1px solid var(--line);position:sticky;top:0;background:rgba(7,9,13,.85);backdrop-filter:blur(12px);z-index:5}
+.hd{display:flex;align-items:center;justify-content:space-between;height:66px}
+.logo{font-weight:900;letter-spacing:.16em;font-size:19px}
+.logo b{color:var(--accent)}
+.nav{display:flex;gap:24px;font-size:13.5px;color:var(--muted)}
+.nav a{color:inherit;text-decoration:none}
+.cta{padding:10px 20px;border-radius:8px;background:var(--accent);color:#04121f;font-weight:800;font-size:13px;text-decoration:none}
+
+.hero{display:grid;grid-template-columns:1.05fr .95fr;gap:56px;align-items:center;padding:76px 0}
+.tag{display:inline-block;padding:7px 14px;border:1px solid var(--line);border-radius:6px;color:var(--accent);font:700 11px/1 monospace;letter-spacing:.14em;text-transform:uppercase}
+h1{font-size:clamp(44px,6.2vw,76px);line-height:.99;letter-spacing:-.03em;margin:24px 0 0;font-weight:900}
+h1 em{color:var(--accent);font-style:normal}
+.sub{margin:22px 0 32px;color:var(--muted);font-size:16.5px;line-height:1.7;max-width:460px}
+.btns{display:flex;gap:12px;flex-wrap:wrap}
+.btn{padding:15px 26px;border-radius:8px;font-weight:800;font-size:14px;text-decoration:none}
+.btn.p{background:var(--accent);color:#04121f}
+.btn.p:hover{background:var(--accent2)}
+.btn.g{border:1px solid var(--line-strong,#2a3a52);color:var(--text)}
+.meta{display:flex;gap:30px;margin-top:38px;flex-wrap:wrap;color:var(--muted);font-size:12.5px}
+.meta b{display:block;color:var(--text);font-size:16px;font-weight:800}
+
+.art{position:relative;border-radius:14px;overflow:hidden;aspect-ratio:4/5;border:1px solid var(--line);
+ background:
+  linear-gradient(135deg, transparent 48%, rgba(63,169,255,.14) 49%, transparent 51%),
+  linear-gradient(45deg, transparent 48%, rgba(63,169,255,.1) 49%, transparent 51%),
+  radial-gradient(ellipse at 75% 25%, rgba(63,169,255,.22), transparent 55%),
+  linear-gradient(160deg,#101724,#07090d)}
+.art .stripe{position:absolute;top:0;bottom:0;width:34px;left:12%;background:repeating-linear-gradient(45deg,#0a0f16 0 8px,#10151f 8px 16px);border-inline:1px solid rgba(255,255,255,.06)}
+.art .big{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px}
+.art .big span{font-size:clamp(52px,6vw,84px);font-weight:900;letter-spacing:.06em;color:var(--text)}
+.art .big i{font-style:normal;color:var(--accent);font-weight:700;font-size:14px;letter-spacing:.4em;text-transform:uppercase}
+.art .lbl{position:absolute;top:18px;left:20px;color:var(--muted);font:700 10px/1 monospace;letter-spacing:.12em}
+.art .num{position:absolute;bottom:16px;right:20px;color:var(--muted);font:700 10px/1 monospace}
+.art .glow{position:absolute;width:300px;height:300px;border:1px solid rgba(63,169,255,.35);border-radius:50%;top:-80px;right:-80px}
+.art .glow2{position:absolute;width:180px;height:180px;border:1px solid rgba(255,255,255,.08);border-radius:50%;bottom:-40px;left:-40px}
+
+h2.sec{font-size:clamp(28px,3.8vw,42px);letter-spacing:-.03em;font-weight:900}
+.sec-head{padding:70px 0 34px}
+.services{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;padding-bottom:70px}
+.svc{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:24px 22px}
+.svc:hover{border-color:rgba(63,169,255,.45)}
+.svc .no{color:var(--accent);font:800 11px/1 monospace;letter-spacing:.12em}
+.svc h3{margin:12px 0 8px;font-size:18px}
+.svc p{color:var(--muted);font-size:13.5px;line-height:1.6}
+.svc .price{margin-top:14px;font-weight:900;color:var(--accent2);font-size:16px}
+
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;padding-bottom:70px}
+.step{border:1px dashed rgba(130,180,255,.25);border-radius:12px;padding:22px}
+.step b{color:var(--accent);font:800 22px/1 monospace}
+.step h3{margin:10px 0 8px;font-size:16px}
+.step p{color:var(--muted);font-size:13px;line-height:1.6}
+
+.cta-band{display:grid;grid-template-columns:1.2fr .8fr;gap:36px;align-items:center;background:linear-gradient(135deg,#0c1524,#0e1219);border:1px solid rgba(63,169,255,.3);border-radius:14px;padding:40px 40px;margin-bottom:70px}
+.cta-band h2{font-size:clamp(24px,3.2vw,36px);letter-spacing:-.03em;line-height:1.05}
+.cta-band p{color:var(--muted);margin-top:12px;line-height:1.65;font-size:14px}
+.ph{display:flex;flex-direction:column;gap:12px}
+.ph a{display:flex;align-items:center;gap:14px;padding:15px 20px;background:var(--bg);border:1px solid var(--line);border-radius:10px;text-decoration:none}
+.ph a:hover{border-color:var(--accent)}
+.ph .ic{width:40px;height:40px;border-radius:8px;background:rgba(63,169,255,.14);display:grid;place-items:center;color:var(--accent);font-size:16px}
+.ph b{display:block;font-size:14px}
+.ph i{display:block;font-style:normal;color:var(--muted);font-size:12.5px;margin-top:2px}
+
+footer{border-top:1px solid var(--line);padding:24px 0 32px;color:var(--muted);font-size:12.5px}
+.fin{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px}
+footer a{color:var(--accent);text-decoration:none}
+
+@media (max-width:900px){
+  .hero{grid-template-columns:1fr;gap:36px;padding:48px 0}
+  .services{grid-template-columns:1fr}
+  .steps{grid-template-columns:1fr}
+  .cta-band{grid-template-columns:1fr;gap:24px;padding:30px 26px}
+  .nav{display:none}
+}
+@media (max-width:600px){
+  .wrap{width:calc(100% - 36px)}
+  h1{font-size:42px}
+  .art{aspect-ratio:1/1}
+  .art .big span{font-size:48px}
+}
+</style>
+</head>
+<body>
+<header><div class="wrap hd">
+  <div class="logo">APEX<b>·</b>DETAILING</div>
+  <nav class="nav"><a href="#s">Услуги</a><a href="#c">Запись</a><a class="cta" href="tel:+70000000000">Записаться</a></nav>
+</div></header>
+
+<main class="wrap">
+  <section class="hero">
+    <div>
+      <span class="tag">Детейлинг-студия · Шаблон</span>
+      <h1>Авто, которое<br>выглядит <em>лучше нового.</em></h1>
+      <p class="sub">Керамика, полировка и защита кузова от мастеров, которые любят машины сильнее, чем вы. Запись — в один клик.</p>
+      <div class="btns">
+        <a class="btn p" href="tel:+70000000000">Записаться на сервис</a>
+        <a class="btn g" href="#s">Услуги и цены</a>
+      </div>
+      <div class="meta">
+        <div><b>5 лет</b>гарантия на керамику</div>
+        <div><b>1000+</b>авто в работе</div>
+        <div><b>Пн–Вс</b>по записи</div>
+      </div>
+    </div>
+    <div class="art">
+      <div class="glow"></div><div class="glow2"></div><div class="stripe"></div>
+      <span class="lbl">CAR CARE STUDIO</span>
+      <div class="big"><span>APEX</span><i>detailing</i></div>
+      <span class="num">№ 03 — CONCEPT</span>
+    </div>
+  </section>
+
+  <section id="s">
+    <div class="sec-head"><span class="tag">Услуги и цены</span><h2 class="sec">Защита и блеск</h2></div>
+    <div class="services">
+      <div class="svc"><span class="no">/ 01</span><h3>Керамическое покрытие</h3><p>Гидрофоб, блеск и защита ЛКП до 2 лет. Подготовка кузова включена.</p><div class="price">от 9 800 ₽</div></div>
+      <div class="svc"><span class="no">/ 02</span><h3>Полировка кузова</h3><p>Убираем риски, голограммы и паутинку. Восстанавливаем глубину цвета.</p><div class="price">от 5 900 ₽</div></div>
+      <div class="svc"><span class="no">/ 03</span><h3>Оклейка плёнкой</h3><p>Антигравийная защита зон риска или полный компл — полиуретан и винил.</p><div class="price">от 15 000 ₽</div></div>
+      <div class="svc"><span class="no">/ 04</span><h3>Химчистка салона</h3><p>Глубокая чистка с разбором или экспресс. Салон пахнет новым авто.</p><div class="price">от 3 500 ₽</div></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><span class="tag">Как мы работаем</span><h2 class="sec">Три шага</h2></div>
+    <div class="steps">
+      <div class="step"><b>01</b><h3>Заявка</h3><p>Пишете или звоните — называете авто и задачу, получаете цену и слот.</p></div>
+      <div class="step"><b>02</b><h3>Осмотр</h3><p>Смотрим кузов, согласовываем работы и сроки — фиксируем смету.</p></div>
+      <div class="step"><b>03</b><h3>Результат</h3><p>Работа, фотоконтроль этапов, приёмка и рекомендации по уходу.</p></div>
+    </div>
+  </section>
+
+  <section id="c" class="cta-band">
+    <div>
+      <h2>Запиши авто<br>на преображение</h2>
+      <p>Опишите задачу и марку авто — назовём цену и ближайшее свободное окно.</p>
+    </div>
+    <div class="ph">
+      <a href="tel:+70000000000"><span class="ic">✆</span><span><b>+7 (000) 000-00-00</b><i>Здесь будет телефон студии</i></span></a>
+      <a href="#"><span class="ic">✉</span><span><b>Соцсеть студии</b><i>VK / Telegram / Instagram — подключим ваш</i></span></a>
+    </div>
+  </section>
+</main>
+
+<footer><div class="wrap fin">
+  <span>APEX Detailing — шаблон концепта</span>
+  <span>Концепт-макет · <a href="https://morphlxngg.github.io/" target="_blank">сделал Alexey Design</a></span>
+</div></footer>
+</body>
+</html>
