@@ -9,7 +9,7 @@
 :root{
   --bg:#06060a; --ink:#f4f2ee; --muted:#8d8994;
   --acc:#e8b04b; --acc2:#c9752e; --line:rgba(255,255,255,.09);
-  --ease:cubic-bezier(.16,1,.3,1); --dur:.9s; --auto:11s;
+  --ease:cubic-bezier(.16,1,.3,1); --dur:.52s; --auto:5s;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%}
@@ -111,8 +111,8 @@ canvas#bg{position:fixed;inset:0;z-index:0}
 /* --- transitions: clean curtain wipe, no flash --- */
 .slide.enter-fwd{animation:wipeInFwd var(--dur) var(--ease) both}
 .slide.enter-back{animation:wipeInBack var(--dur) var(--ease) both}
-.slide.exit-fwd{animation:wipeOutFwd calc(var(--dur)*.62) var(--ease) both;visibility:visible}
-.slide.exit-back{animation:wipeOutBack calc(var(--dur)*.62) var(--ease) both;visibility:visible}
+.slide.exit-fwd{animation:wipeOutFwd calc(var(--dur)*.48) var(--ease) both;visibility:visible}
+.slide.exit-back{animation:wipeOutBack calc(var(--dur)*.48) var(--ease) both;visibility:visible}
 @keyframes wipeInFwd{
   from{clip-path:inset(0 0 0 100%);transform:translateZ(-260px) rotateY(-6deg) scale(.97);opacity:.2}
   60%{opacity:1}
@@ -128,13 +128,13 @@ canvas#bg{position:fixed;inset:0;z-index:0}
   from{clip-path:inset(0 0 0 0);transform:none;opacity:1}
   to{clip-path:inset(0 0 0 100%);transform:translateZ(-180px) rotateY(-5deg) scale(1.03);opacity:.15}}
 
-/* --- entrance cascades --- */
-.a{opacity:0;transform:translateY(36px);
-  transition:opacity .8s var(--ease),transform .95s var(--ease);transition-delay:calc(var(--d,0)*1ms)}
+/* --- entrance cascades (capped so nothing feels sluggish) --- */
+.a{opacity:0;transform:translateY(28px);
+  transition:opacity .5s var(--ease),transform .58s var(--ease);transition-delay:min(calc(var(--d,0)*1ms),260ms)}
 .slide.active .a{opacity:1;transform:none}
 .mask{display:block;overflow:hidden}
 .mask>span{display:block;transform:translateY(108%) rotate(4deg);
-  transition:transform 1.05s var(--ease);transition-delay:calc(var(--d,0)*1ms)}
+  transition:transform .62s var(--ease);transition-delay:min(calc(var(--d,0)*1ms),260ms)}
 .slide.active .mask>span{transform:none}
 
 /* --- late wave: things that fire AFTER the slide has landed --- */
@@ -142,25 +142,25 @@ canvas#bg{position:fixed;inset:0;z-index:0}
   background:rgba(255,255,255,.07)}
 .rule::after{content:'';display:block;height:100%;width:100%;transform:scaleX(0);transform-origin:left;
   background:linear-gradient(90deg,var(--acc),transparent);
-  transition:transform 1.25s var(--ease);transition-delay:calc(var(--d2,1000)*1ms)}
+  transition:transform .6s var(--ease);transition-delay:min(calc(var(--d2,1000)*1ms),330ms)}
 .slide.active .rule::after{transform:scaleX(1)}
 
 /* light sweep across cards after arrival */
 .card::after,.wc::after{content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;opacity:0;
   background:linear-gradient(115deg,transparent 32%,var(--acc) 50%,transparent 68%)}
 .slide.active .card::after,.slide.active .wc::after{
-  animation:sweep 1.9s var(--ease) forwards;animation-delay:calc(var(--d,0)*1ms + 900ms)}
+  animation:sweep .95s var(--ease) forwards;animation-delay:min(calc(var(--d,0)*1ms + 340ms),520ms)}
 @keyframes sweep{0%{transform:translateX(-125%);opacity:0}22%{opacity:.2}100%{transform:translateX(125%);opacity:0}}
 
 /* late pulse on stats */
 .stat::before{content:'';position:absolute;inset:0;pointer-events:none;opacity:0;
-  background:radial-gradient(120% 80% at 50% 0%,var(--acc),transparent 70%);transition:opacity 1.1s ease;
-  transition-delay:calc(var(--d,0)*1ms + 1400ms)}
+  background:radial-gradient(120% 80% at 50% 0%,var(--acc),transparent 70%);transition:opacity .6s ease;
+  transition-delay:min(calc(var(--d,0)*1ms + 620ms),820ms)}
 .slide.active .stat::before{opacity:.11}
 
 /* late reveal block (footers, notes) */
-.late{opacity:0;transform:translateY(16px);
-  transition:opacity .9s var(--ease),transform 1s var(--ease);transition-delay:calc(var(--d2,1200)*1ms)}
+.late{opacity:0;transform:translateY(14px);
+  transition:opacity .55s var(--ease),transform .62s var(--ease);transition-delay:min(calc(var(--d2,1200)*1ms),560ms)}
 .slide.active .late{opacity:1;transform:none}
 
 .eyebrow{display:inline-flex;align-items:center;gap:13px;font-size:11px;letter-spacing:.42em;
@@ -215,8 +215,8 @@ h2.big{font-size:clamp(36px,7.6vw,108px)}
   border-top:1px solid var(--line);position:relative;transition:background .45s}
 .step:last-child{border-bottom:1px solid var(--line)}
 .step::after{content:'';position:absolute;left:0;top:0;height:100%;width:2px;background:var(--acc);
-  transform:scaleY(0);transform-origin:top;transition:transform .8s var(--ease);
-  transition-delay:calc(var(--d,0)*1ms + 700ms)}
+  transform:scaleY(0);transform-origin:top;transition:transform .45s var(--ease);
+  transition-delay:min(calc(var(--d,0)*1ms + 280ms),460ms)}
 .slide.active .step::after{transform:scaleY(1)}
 .step:hover{background:rgba(255,255,255,.03)}
 .step .n{font-family:'Arial Black',sans-serif;font-size:14px;color:var(--acc)}
@@ -241,7 +241,7 @@ h2.big{font-size:clamp(36px,7.6vw,108px)}
 .wy{padding:30px 26px;border:1px solid var(--line);border-radius:18px;background:#0a0a10;position:relative;overflow:hidden}
 .wy::before{content:'';position:absolute;top:0;left:0;width:100%;height:2px;
   background:linear-gradient(90deg,var(--acc),transparent);transform:scaleX(0);transform-origin:left;
-  transition:transform 1s var(--ease);transition-delay:calc(var(--d,0)*1ms + 700ms)}
+  transition:transform .5s var(--ease);transition-delay:min(calc(var(--d,0)*1ms + 280ms),460ms)}
 .slide.active .wy::before{transform:scaleX(1)}
 .wy b{display:block;font-family:'Arial Black',sans-serif;font-size:15px;text-transform:uppercase;margin-bottom:10px;color:var(--acc)}
 .wy p{color:var(--muted);font-size:14px;line-height:1.65}
@@ -535,7 +535,7 @@ function countUp(el) {
   const target = parseFloat(el.dataset.count);
   const suf = el.dataset.suffix || '';
   if (REDUCED) { el.textContent = target + suf; return; }
-  const t0 = performance.now(), dur = 1500;
+  const t0 = performance.now(), dur = 900;
   const step = (now) => {
     const k = Math.min(1, (now - t0) / dur);
     el.textContent = Math.round(target * (1 - Math.pow(1 - k, 3))) + suf;
@@ -566,7 +566,7 @@ function show(i, dir) {
     void el.offsetWidth;
     el.style.transition = '';
   });
-  $$('[data-count]', to).forEach(el => setTimeout(() => countUp(el), 1100));
+  $$('[data-count]', to).forEach(el => setTimeout(() => countUp(el), 480));
 
   idx = i;
   setAccent(i);
@@ -578,7 +578,7 @@ function show(i, dir) {
     from.classList.remove('exit-fwd', 'exit-back');
     to.classList.remove('enter-fwd', 'enter-back');
     busy = false;
-  }, REDUCED ? 30 : 760);
+  }, REDUCED ? 30 : 430);
 }
 
 function sync() {
@@ -596,7 +596,7 @@ $('#next').addEventListener('click', next);
 $('#prev').addEventListener('click', prev);
 
 /* ---------- autoplay ---------- */
-const AUTO_MS = 11000;
+const AUTO_MS = 5000;
 let auto = true;
 let autoT0 = performance.now();
 let hidden = false, helpOpen = false;
@@ -668,7 +668,7 @@ addEventListener('wheel', (e) => {
   const d = Math.abs(e.deltaY) > Math.abs(e.deltaX) ? e.deltaY : e.deltaX;
   if (Math.abs(d) < 32) return;
   wlock = true;
-  setTimeout(() => { wlock = false; }, REDUCED ? 220 : 850);
+  setTimeout(() => { wlock = false; }, REDUCED ? 160 : 400);
   (d > 0 ? next : prev)();
 }, { passive: true });
 
@@ -751,7 +751,7 @@ idx = start;
 setAccent(start);
 fitSlides();
 sync();
-setTimeout(() => $$('[data-count]', slides[start]).forEach(el => countUp(el)), 1100);
+setTimeout(() => $$('[data-count]', slides[start]).forEach(el => countUp(el)), 480);
 setTimeout(() => { const el = $('#hint'); if (el) el.style.opacity = '0'; }, 8000);
 
 let fitTimer;
