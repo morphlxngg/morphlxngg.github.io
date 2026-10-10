@@ -42,6 +42,7 @@ function Header() {
           <a href="#work" onClick={(e) => { close(); scrollTo('work')(e); }}>{t.nav.work}</a>
           <a href="#pricing" onClick={(e) => { close(); scrollTo('pricing')(e); }}>{t.nav.pricing}</a>
           <a href="#about" onClick={(e) => { close(); scrollTo('about')(e); }}>{t.nav.about}</a>
+          <a href="#start" onClick={(e) => { close(); scrollTo('start')(e); }}>{t.nav.start}</a>
           <a href="#contact" onClick={(e) => { close(); scrollTo('contact')(e); }}>{t.nav.contact}</a>
           <a className="nav-cta" href="https://t.me/morphlxng" target="_blank" rel="noreferrer" onClick={close}>{t.nav.cta} <Send size={14} /></a>
         </nav>
@@ -119,14 +120,19 @@ function Home() {
           <p className="section-sub">{t.work.sub}</p>
         </div>
         <div className="work-grid">
-          {Object.values(projects).map((p, i) => (
-            <Link className={`work-card ${p.accent}`} to={p.route} key={p.slug}>
-              <div className="work-cover"><img src={p.cover} alt={p.coverAlt} /><span className="work-index">{String(i + 1).padStart(2, '0')}</span></div>
-              <div className="work-meta"><span>{p.type}</span><ArrowUpRight size={17} /></div>
-              <h3>{p.title}</h3>
-              <p>{p.place}</p>
-            </Link>
-          ))}
+          {Object.values(projects).map((p, i) => {
+            const card = (
+              <>
+                <div className="work-cover"><img src={p.cover} alt={p.coverAlt} /><span className="work-index">{String(i + 1).padStart(2, '0')}</span></div>
+                <div className="work-meta"><span>{p.type}</span><ArrowUpRight size={17} /></div>
+                <h3>{p.title}</h3>
+                <p>{p.place}</p>
+              </>
+            );
+            return p.href
+              ? <a className={`work-card ${p.accent}`} href={p.href} key={p.slug}>{card}</a>
+              : <Link className={`work-card ${p.accent}`} to={p.route} key={p.slug}>{card}</Link>;
+          })}
         </div>
       </section>
 
@@ -160,7 +166,53 @@ function Home() {
           })}
         </div>
       </section>
+
+      <StartProject />
     </>
+  );
+}
+
+function StartProject() {
+  const { t } = useT();
+  const [form, setForm] = useState({ name: '', business: '', contact: '', need: t.intake.options[0], message: '' });
+  const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
+  const onSubmit = (e) => {
+    e.preventDefault();
+    const subject = `New project request — ${form.business || form.name || 'website'}`;
+    const body = [
+      `Name: ${form.name}`,
+      `Business: ${form.business}`,
+      `Contact: ${form.contact}`,
+      `Need: ${form.need}`,
+      '',
+      form.message,
+    ].join('\n');
+    window.location.href = `mailto:nevizhin40@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  };
+  return (
+    <section className="intake" id="start">
+      <div className="section-head">
+        <p className="eyebrow">{t.intake.eyebrow}</p>
+        <h2>{t.intake.titleA}<br /><em>{t.intake.titleB}</em></h2>
+        <p className="section-sub">{t.intake.sub}</p>
+      </div>
+      <form className="intake-form" onSubmit={onSubmit}>
+        <label><span>{t.intake.name}</span><input required value={form.name} onChange={set('name')} /></label>
+        <label><span>{t.intake.business}</span><input value={form.business} onChange={set('business')} /></label>
+        <label><span>{t.intake.contact}</span><input required value={form.contact} onChange={set('contact')} /></label>
+        <label><span>{t.intake.need}</span>
+          <select value={form.need} onChange={set('need')}>
+            {t.intake.options.map((o) => <option key={o} value={o}>{o}</option>)}
+          </select>
+        </label>
+        <label className="intake-wide"><span>{t.intake.message}</span><textarea rows={4} value={form.message} onChange={set('message')} /></label>
+        <div className="intake-actions">
+          <button className="btn primary" type="submit">{t.intake.submit} <Send size={14} /></button>
+          <a className="btn ghost" href="https://t.me/morphlxng" target="_blank" rel="noreferrer">Telegram</a>
+        </div>
+        <p className="intake-note">{t.intake.note}</p>
+      </form>
+    </section>
   );
 }
 
