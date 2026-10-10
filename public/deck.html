@@ -267,6 +267,58 @@ h2.big{font-size:clamp(36px,7.6vw,108px)}
 .help p{color:var(--muted);font-size:14px;letter-spacing:.1em}
 .help kbd{border:1px solid var(--line);border-radius:6px;padding:5px 11px;margin:0 4px;font:600 13px inherit;color:var(--ink)}
 
+/* ===== INTRO ===== */
+#intro{position:fixed;inset:0;z-index:80;background:#07070b;display:grid;place-items:center;
+  transition:clip-path .85s var(--ease),opacity .45s ease;overflow:hidden}
+#intro.gone{clip-path:inset(0 0 100% 0);opacity:0;pointer-events:none}
+.intro-in{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;
+  text-align:center;position:relative;padding:0 20px}
+.intro-mark{width:0;height:1px;background:linear-gradient(90deg,transparent,var(--acc),transparent);opacity:0}
+#intro.play .intro-mark{animation:lineGrow .6s var(--ease) .05s both}
+
+.hello{display:flex;gap:.02em;font-family:'Arial Black',sans-serif;
+  font-size:clamp(26px,6.4vw,78px);letter-spacing:.24em;text-transform:uppercase;color:var(--muted)}
+.hello span{display:inline-block;opacity:0;transform:translateY(-28px) rotateX(-70deg);filter:blur(8px)}
+#intro.play .hello span{animation:letterIn .45s var(--ease) both;
+  animation-delay:calc(.32s + var(--i)*52ms)}
+#intro.play .hello.burst span{animation:letterOut .5s var(--ease) both;
+  animation-delay:calc(var(--i)*22ms)}
+
+.name{font-family:'Arial Black',sans-serif;font-weight:900;text-transform:uppercase;
+  font-size:clamp(40px,12vw,168px);line-height:.9;letter-spacing:-.02em;opacity:0;
+  background:linear-gradient(180deg,#fff 30%,var(--acc));-webkit-background-clip:text;
+  background-clip:text;color:transparent;filter:blur(0)}
+#intro.play .name.on{animation:nameIn .78s var(--ease) both}
+
+.intro-sub{display:grid;gap:12px;opacity:0}
+#intro.play .intro-sub.on{animation:subIn .6s var(--ease) both}
+.intro-sub p{font-size:clamp(11px,1.5vw,14px);letter-spacing:.36em;text-transform:uppercase;color:var(--muted)}
+.intro-sub .bar{width:0;height:1px;background:var(--line);margin-inline:auto}
+#intro.play .intro-sub.on .bar{animation:barGrow .7s var(--ease) .12s both}
+
+.intro-skip{position:absolute;bottom:34px;font-size:9.5px;letter-spacing:.3em;color:#4e4a57;
+  text-transform:uppercase;opacity:0}
+#intro.play .intro-skip{animation:subIn .5s var(--ease) 2s both}
+
+@keyframes lineGrow{from{width:0;opacity:0}to{width:min(340px,54vw);opacity:1}}
+@keyframes letterIn{from{opacity:0;transform:translateY(-28px) rotateX(-70deg);filter:blur(8px)}
+  to{opacity:1;transform:none;filter:blur(0)}}
+@keyframes letterOut{
+  from{opacity:1;transform:none;filter:blur(0)}
+  to{opacity:0;transform:translate(var(--tx,0),var(--ty,-40px)) rotate(var(--tr,20deg)) scale(.6);filter:blur(12px)}}
+@keyframes nameIn{
+  0%{opacity:0;transform:scale(1.4);filter:blur(26px);letter-spacing:.16em}
+  60%{opacity:1}
+  100%{opacity:1;transform:none;filter:blur(0);letter-spacing:-.02em}}
+@keyframes subIn{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+@keyframes barGrow{from{width:0}to{width:min(300px,50vw)}}
+
+.replay{position:fixed;bottom:82px;right:clamp(20px,4vw,48px);z-index:41;
+  font-size:9.5px;letter-spacing:.26em;text-transform:uppercase;color:#5b5765;background:none;
+  border:1px solid var(--line);border-radius:100px;padding:8px 15px;cursor:pointer;
+  transition:all .35s var(--ease);backdrop-filter:blur(8px)}
+.replay:hover{color:var(--acc);border-color:var(--acc)}
+
 @media (max-width:820px){
   .step{grid-template-columns:1fr;gap:8px}
   .step .day{margin-top:6px}
@@ -279,7 +331,22 @@ h2.big{font-size:clamp(36px,7.6vw,108px)}
 }
 </style>
 </head>
-<body>
+<body class="locked">
+
+<!-- INTRO -->
+<div id="intro">
+  <div class="intro-in">
+    <div class="intro-mark"></div>
+    <div class="hello" id="hello"></div>
+    <h1 class="name" id="introName">Алексей</h1>
+    <div class="intro-sub" id="introSub">
+      <div class="bar"></div>
+      <p>Web-дизайнер для барбершопов, салонов и студий</p>
+      <p>Сайты с онлайн-записью · Казань → весь мир</p>
+    </div>
+    <div class="intro-skip">нажми любую клавишу — пропустить</div>
+  </div>
+</div>
 
 <canvas id="bg"></canvas>
 <div class="grain"></div><div class="vig"></div>
@@ -481,6 +548,8 @@ h2.big{font-size:clamp(36px,7.6vw,108px)}
   <div class="counter"><b id="cur">01</b> / <span id="tot">09</span></div>
 </div>
 
+<button class="replay" id="replay">↺ интро</button>
+
 <div class="help" id="help">
   <div class="help-in">
     <h3>Управление</h3>
@@ -605,7 +674,7 @@ const ring = $('#ring'), ringIcon = $('#ringIcon');
 ring.classList.toggle('paused', !auto);
 ringIcon.textContent = auto ? '⏸' : '▶';
 
-function autoActive() { return auto && !hidden && !helpOpen && !busy; }
+function autoActive() { return auto && !hidden && !helpOpen && !busy && !introRunning; }
 function resetAuto() { autoT0 = performance.now(); }
 
 function tick() {
@@ -632,6 +701,7 @@ document.addEventListener('visibilitychange', () => { hidden = document.hidden; 
 
 /* ---------- keyboard ---------- */
 addEventListener('keydown', (e) => {
+  if (introRunning) return;
   if (e.metaKey || e.ctrlKey || e.altKey) return;
   const k = e.key;
   if (k === 'ArrowRight' || k === 'PageDown' || k === ' ' || k === 'Enter') { e.preventDefault(); next(); }
@@ -720,6 +790,64 @@ $('#stage').addEventListener('click', (e) => {
   })();
 })();
 
+/* ---------- INTRO ---------- */
+const intro = $('#intro');
+let introRunning = false;
+let introTimers = [];
+
+function buildHello() {
+  $('#hello').innerHTML = [...'ПРИВЕТ'].map((c, i) => {
+    const tx = Math.round(Math.random() * 190 - 95);
+    const ty = Math.round(Math.random() * 130 - 75);
+    const tr = Math.round(Math.random() * 80 - 40);
+    return `<span style="--i:${i};--tx:${tx}px;--ty:${ty}px;--tr:${tr}deg">${c}</span>`;
+  }).join('');
+}
+
+function startDeck() {
+  const s = slides[Math.max(0, idx)];
+  $$('[data-count]', s).forEach(el => setTimeout(() => countUp(el), 380));
+  setTimeout(() => { const el = $('#hint'); if (el) el.style.opacity = '0'; }, 7000);
+  resetAuto();
+}
+
+function hideIntro() {
+  introRunning = false;
+  intro.classList.add('gone');
+  document.body.classList.remove('locked');
+  startDeck();
+  setTimeout(() => { intro.style.display = 'none'; }, 950);
+}
+
+function endIntro() {
+  introTimers.forEach(clearTimeout);
+  introTimers = [];
+  if (!introRunning) return;
+  hideIntro();
+}
+
+function playIntro() {
+  intro.style.display = '';
+  intro.classList.remove('gone');
+  $('#hello').classList.remove('burst');
+  $('#introName').classList.remove('on');
+  $('#introSub').classList.remove('on');
+  void intro.offsetWidth;
+  intro.classList.add('play');
+  introRunning = true;
+  document.body.classList.add('locked');
+  buildHello();
+  const T = (ms, fn) => introTimers.push(setTimeout(fn, ms));
+  T(1120, () => $('#hello').classList.add('burst'));
+  T(1280, () => $('#introName').classList.add('on'));
+  T(1960, () => $('#introSub').classList.add('on'));
+  T(2600, () => endIntro());
+}
+
+intro.addEventListener('click', () => endIntro());
+addEventListener('keydown', (e) => { if (introRunning) { e.preventDefault(); endIntro(); } }, true);
+$('#replay').addEventListener('click', () => { setAuto(false); playIntro(); });
+
 /* ---------- boot ---------- */
 const h = parseInt((location.hash || '').replace('#s', ''), 10);
 const start = Number.isFinite(h) ? Math.max(0, Math.min(total - 1, h - 1)) : 0;
@@ -751,8 +879,14 @@ idx = start;
 setAccent(start);
 fitSlides();
 sync();
-setTimeout(() => $$('[data-count]', slides[start]).forEach(el => countUp(el)), 480);
-setTimeout(() => { const el = $('#hint'); if (el) el.style.opacity = '0'; }, 8000);
+
+if (REDUCED || /^#s\d+$/.test(location.hash)) {
+  intro.style.display = 'none';
+  document.body.classList.remove('locked');
+  startDeck();
+} else {
+  playIntro();
+}
 
 let fitTimer;
 function scheduleFit(delay) {
