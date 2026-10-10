@@ -9,7 +9,7 @@
 :root{
   --bg:#06060a; --ink:#f4f2ee; --muted:#8d8994;
   --acc:#e8b04b; --acc2:#c9752e; --line:rgba(255,255,255,.09);
-  --ease:cubic-bezier(.16,1,.3,1); --dur:.95s;
+  --ease:cubic-bezier(.16,1,.3,1); --dur:.9s; --auto:11s;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%}
@@ -20,110 +20,188 @@ body{
 }
 canvas#bg{position:fixed;inset:0;z-index:0}
 
-/* atmosphere */
 .grain{position:fixed;inset:-50%;z-index:60;pointer-events:none;opacity:.05;
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
   animation:grain .55s steps(3) infinite}
 @keyframes grain{0%{transform:translate(0,0)}33%{transform:translate(-3%,2%)}66%{transform:translate(2%,-3%)}100%{transform:translate(0,0)}}
 .vig{position:fixed;inset:0;z-index:59;pointer-events:none;
   background:radial-gradient(ellipse 120% 90% at 50% 50%,transparent 40%,rgba(0,0,0,.8) 100%)}
-.flash{position:fixed;inset:0;z-index:58;pointer-events:none;background:var(--acc);opacity:0}
 
 /* ===== chrome ===== */
 .top{position:fixed;top:0;left:0;right:0;z-index:40;display:flex;align-items:center;gap:20px;
   padding:22px clamp(20px,4vw,48px);pointer-events:none}
 .brand{display:flex;align-items:center;gap:11px;font-size:11px;letter-spacing:.34em;text-transform:uppercase;color:var(--muted)}
 .brand i{width:9px;height:9px;border-radius:50%;background:var(--acc);box-shadow:0 0 14px var(--acc);
-  animation:bp 2.2s ease-in-out infinite}
-@keyframes bp{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.72)}}
+  animation:bp 2.4s ease-in-out infinite}
+@keyframes bp{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.7)}}
 .dots{margin-left:auto;display:flex;gap:7px;pointer-events:auto}
 .dot{width:26px;height:4px;border-radius:3px;background:rgba(255,255,255,.16);cursor:pointer;
-  transition:all .45s var(--ease);position:relative}
-.dot:hover{background:rgba(255,255,255,.36)}
+  transition:all .5s var(--ease)}
+.dot:hover{background:rgba(255,255,255,.4)}
 .dot.on{width:46px;background:var(--acc)}
 
-.bottom{position:fixed;bottom:0;left:0;right:0;z-index:40;display:flex;align-items:center;gap:22px;
+.bottom{position:fixed;bottom:0;left:0;right:0;z-index:40;display:flex;align-items:center;gap:18px;
   padding:22px clamp(20px,4vw,48px);pointer-events:none}
-.nav{display:flex;gap:9px;pointer-events:auto}
+.nav{display:flex;gap:9px;pointer-events:auto;align-items:center}
 .nb{width:46px;height:46px;border-radius:50%;border:1px solid var(--line);background:rgba(255,255,255,.03);
   color:var(--ink);cursor:pointer;display:grid;place-items:center;transition:all .4s var(--ease);backdrop-filter:blur(8px)}
 .nb:hover:not(:disabled){background:var(--acc);color:#0b0805;border-color:var(--acc);transform:scale(1.08)}
 .nb:disabled{opacity:.22;cursor:not-allowed}
+
+/* countdown ring */
+.ring{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;position:relative;
+  background:conic-gradient(var(--acc) var(--p,0deg),rgba(255,255,255,.12) 0);
+  transition:opacity .4s ease;cursor:pointer;pointer-events:auto}
+.ring::before{content:'';position:absolute;inset:3px;border-radius:50%;background:#08080c}
+.ring span{position:relative;font-size:13px;line-height:1}
+.ring.paused{opacity:.32}
 .counter{margin-left:auto;font-size:11px;letter-spacing:.3em;color:var(--muted);font-variant-numeric:tabular-nums;pointer-events:none}
 .counter b{color:var(--ink);font-weight:600}
-.hint{position:fixed;bottom:82px;left:0;right:0;text-align:center;font-size:10px;letter-spacing:.34em;
-  color:#5b5765;text-transform:uppercase;z-index:40;pointer-events:none;transition:opacity .6s ease}
+.hint{position:fixed;bottom:84px;left:0;right:0;text-align:center;font-size:10px;letter-spacing:.32em;
+  color:#5b5765;text-transform:uppercase;z-index:40;pointer-events:none;transition:opacity .8s ease}
 .hint kbd{border:1px solid var(--line);border-radius:5px;padding:3px 7px;margin:0 3px;font:inherit}
 
 /* ===== slides ===== */
-.stage{position:fixed;inset:0;z-index:10;perspective:1600px;transform-style:preserve-3d}
+.stage{position:fixed;inset:0;z-index:10;perspective:1700px}
 .slide{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;
   padding:clamp(88px,11vh,130px) clamp(20px,6vw,110px) clamp(92px,12vh,130px);
-  opacity:0;visibility:hidden;pointer-events:none;transform-style:preserve-3d}
+  opacity:0;visibility:hidden;pointer-events:none;will-change:transform,clip-path;overflow:hidden}
 .slide.active{opacity:1;visibility:visible;pointer-events:auto}
 
-/* transitions */
-.slide.enter-fwd{animation:inFwd var(--dur) var(--ease) both}
-.slide.enter-back{animation:inBack var(--dur) var(--ease) both}
-.slide.exit-fwd{animation:outFwd calc(var(--dur)*.72) var(--ease) both;visibility:visible}
-.slide.exit-back{animation:outBack calc(var(--dur)*.72) var(--ease) both;visibility:visible}
-@keyframes inFwd{from{opacity:0;transform:translate3d(9%,0,-320px) rotateY(-9deg);filter:blur(11px)}to{opacity:1;transform:none;filter:blur(0)}}
-@keyframes inBack{from{opacity:0;transform:translate3d(-9%,0,-320px) rotateY(9deg);filter:blur(11px)}to{opacity:1;transform:none;filter:blur(0)}}
-@keyframes outFwd{from{opacity:1;transform:none;filter:blur(0)}to{opacity:0;transform:translate3d(-7%,0,-260px) rotateY(7deg);filter:blur(9px)}}
-@keyframes outBack{from{opacity:1;transform:none;filter:blur(0)}to{opacity:0;transform:translate3d(7%,0,-260px) rotateY(-7deg);filter:blur(9px)}}
+/* auto-fit density: applied by JS when content is taller than the viewport */
+.slide.tight{padding-top:clamp(74px,9vh,104px);padding-bottom:clamp(78px,9.5vh,104px)}
+.slide.tight .eyebrow{margin-bottom:16px}
+.slide.tight h2.big{font-size:clamp(30px,5.4vw,74px)}
+.slide.tight .lead{margin-top:18px;font-size:14.5px}
+.slide.tight .rule{margin-top:16px}
+.slide.tight .stats,.slide.tight .cards,.slide.tight .work,.slide.tight .plans,.slide.tight .why,.slide.tight .steps{margin-top:22px}
+.slide.tight .stat{padding:26px 22px}
+.slide.tight .card{min-height:206px;padding:24px 22px}
+.slide.tight .card .n{font-size:40px;top:16px;left:20px}
+.slide.tight .plan{padding:26px 22px}
+.slide.tight .plan .v{margin:10px 0 16px}
+.slide.tight .wc{aspect-ratio:16/10}
+.slide.tight .step{padding:13px 14px}
+.slide.tight .step p{font-size:13px;margin-top:4px}
+.slide.tight .wy{padding:24px 22px}
 
-/* element reveals */
-.a{opacity:0;transform:translateY(38px) scale(.985);
-  transition:opacity .85s var(--ease),transform 1s var(--ease);transition-delay:calc(var(--d,0)*1ms)}
+.slide.xtight{padding-top:clamp(64px,8vh,90px);padding-bottom:clamp(66px,8vh,90px)}
+.slide.xtight .eyebrow{margin-bottom:12px}
+.slide.xtight h2.big{font-size:clamp(26px,4.4vw,58px)}
+.slide.xtight .lead{margin-top:14px;font-size:13.5px;line-height:1.55}
+.slide.xtight .rule{margin-top:12px}
+.slide.xtight .stats,.slide.xtight .cards,.slide.xtight .work,.slide.xtight .plans,.slide.xtight .why,.slide.xtight .steps{margin-top:16px}
+.slide.xtight .stat{padding:20px 18px}
+.slide.xtight .stat b{font-size:clamp(26px,3.6vw,42px)}
+.slide.xtight .card{min-height:170px;padding:20px 18px}
+.slide.xtight .card h3{font-size:16px;margin-bottom:6px}
+.slide.xtight .card p{font-size:12.5px;line-height:1.5}
+.slide.xtight .card .n{font-size:32px}
+.slide.xtight .plan{padding:20px 18px}
+.slide.xtight .plan .v{font-size:clamp(26px,3.4vw,40px);margin:8px 0 12px}
+.slide.xtight .plan li{font-size:12.5px}
+.slide.xtight .wc{aspect-ratio:16/9}
+.slide.xtight .wc .m{padding:13px}
+.slide.xtight .step{padding:10px 12px}
+.slide.xtight .step h4{font-size:15px}
+.slide.xtight .step p{font-size:12px;margin-top:3px}
+.slide.xtight .wy{padding:20px 18px}
+.slide.xtight .wy p{font-size:12.5px}
+
+/* --- transitions: clean curtain wipe, no flash --- */
+.slide.enter-fwd{animation:wipeInFwd var(--dur) var(--ease) both}
+.slide.enter-back{animation:wipeInBack var(--dur) var(--ease) both}
+.slide.exit-fwd{animation:wipeOutFwd calc(var(--dur)*.62) var(--ease) both;visibility:visible}
+.slide.exit-back{animation:wipeOutBack calc(var(--dur)*.62) var(--ease) both;visibility:visible}
+@keyframes wipeInFwd{
+  from{clip-path:inset(0 0 0 100%);transform:translateZ(-260px) rotateY(-6deg) scale(.97);opacity:.2}
+  60%{opacity:1}
+  to{clip-path:inset(0 0 0 0);transform:none;opacity:1}}
+@keyframes wipeInBack{
+  from{clip-path:inset(0 100% 0 0);transform:translateZ(-260px) rotateY(6deg) scale(.97);opacity:.2}
+  60%{opacity:1}
+  to{clip-path:inset(0 0 0 0);transform:none;opacity:1}}
+@keyframes wipeOutFwd{
+  from{clip-path:inset(0 0 0 0);transform:none;opacity:1}
+  to{clip-path:inset(0 100% 0 0);transform:translateZ(-180px) rotateY(5deg) scale(1.03);opacity:.15}}
+@keyframes wipeOutBack{
+  from{clip-path:inset(0 0 0 0);transform:none;opacity:1}
+  to{clip-path:inset(0 0 0 100%);transform:translateZ(-180px) rotateY(-5deg) scale(1.03);opacity:.15}}
+
+/* --- entrance cascades --- */
+.a{opacity:0;transform:translateY(36px);
+  transition:opacity .8s var(--ease),transform .95s var(--ease);transition-delay:calc(var(--d,0)*1ms)}
 .slide.active .a{opacity:1;transform:none}
 .mask{display:block;overflow:hidden}
 .mask>span{display:block;transform:translateY(108%) rotate(4deg);
   transition:transform 1.05s var(--ease);transition-delay:calc(var(--d,0)*1ms)}
 .slide.active .mask>span{transform:none}
 
+/* --- late wave: things that fire AFTER the slide has landed --- */
+.rule{height:2px;width:min(560px,70%);margin-top:26px;border-radius:2px;overflow:hidden;
+  background:rgba(255,255,255,.07)}
+.rule::after{content:'';display:block;height:100%;width:100%;transform:scaleX(0);transform-origin:left;
+  background:linear-gradient(90deg,var(--acc),transparent);
+  transition:transform 1.25s var(--ease);transition-delay:calc(var(--d2,1000)*1ms)}
+.slide.active .rule::after{transform:scaleX(1)}
+
+/* light sweep across cards after arrival */
+.card::after,.wc::after{content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;opacity:0;
+  background:linear-gradient(115deg,transparent 32%,var(--acc) 50%,transparent 68%)}
+.slide.active .card::after,.slide.active .wc::after{
+  animation:sweep 1.9s var(--ease) forwards;animation-delay:calc(var(--d,0)*1ms + 900ms)}
+@keyframes sweep{0%{transform:translateX(-125%);opacity:0}22%{opacity:.2}100%{transform:translateX(125%);opacity:0}}
+
+/* late pulse on stats */
+.stat::before{content:'';position:absolute;inset:0;pointer-events:none;opacity:0;
+  background:radial-gradient(120% 80% at 50% 0%,var(--acc),transparent 70%);transition:opacity 1.1s ease;
+  transition-delay:calc(var(--d,0)*1ms + 1400ms)}
+.slide.active .stat::before{opacity:.11}
+
+/* late reveal block (footers, notes) */
+.late{opacity:0;transform:translateY(16px);
+  transition:opacity .9s var(--ease),transform 1s var(--ease);transition-delay:calc(var(--d2,1200)*1ms)}
+.slide.active .late{opacity:1;transform:none}
+
 .eyebrow{display:inline-flex;align-items:center;gap:13px;font-size:11px;letter-spacing:.42em;
   text-transform:uppercase;color:var(--acc);margin-bottom:26px}
-.eyebrow::before{content:'';width:40px;height:1px;background:var(--acc)}
+.eyebrow::before{content:'';width:40px;height:1px;background:var(--acc);
+  transform-origin:left;animation:grow .9s var(--ease) both}
+@keyframes grow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
 h1.big,h2.big{font-family:'Arial Black',Impact,sans-serif;font-weight:900;text-transform:uppercase;
-  letter-spacing:-.04em;line-height:.84}
+  letter-spacing:-.04em;line-height:.86}
 h1.big{font-size:clamp(52px,13.5vw,190px)}
 h2.big{font-size:clamp(36px,7.6vw,108px)}
 .outline{color:transparent;-webkit-text-stroke:1.4px var(--acc)}
 .lead{max-width:640px;margin-top:28px;font-size:clamp(15px,1.5vw,19px);line-height:1.7;color:var(--muted)}
 
-/* title slide extras */
-.ts-sub{display:flex;gap:44px;flex-wrap:wrap;margin-top:48px;padding-top:34px;border-top:1px solid var(--line)}
+.ts-sub{display:flex;gap:44px;flex-wrap:wrap;margin-top:46px;padding-top:32px;border-top:1px solid var(--line)}
 .ts-sub div{font-size:12px;letter-spacing:.24em;text-transform:uppercase;color:var(--muted)}
 .ts-sub b{display:block;font-family:'Arial Black',sans-serif;font-size:clamp(24px,3vw,38px);
   color:var(--ink);letter-spacing:-.02em;margin-bottom:8px}
 
-/* stats */
 .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:1px;background:var(--line);
-  border:1px solid var(--line);border-radius:18px;overflow:hidden;margin-top:44px}
+  border:1px solid var(--line);border-radius:18px;overflow:hidden;margin-top:40px}
 .stat{background:#0b0b11;padding:34px 26px;position:relative;overflow:hidden;transition:background .5s}
 .stat:hover{background:#111018}
-.stat::after{content:'';position:absolute;left:0;bottom:0;height:2px;width:0;background:var(--acc);transition:width .9s var(--ease)}
-.stat:hover::after{width:100%}
 .stat b{display:block;font-family:'Arial Black',sans-serif;font-size:clamp(34px,5vw,58px);line-height:1;letter-spacing:-.04em}
 .stat span{display:block;margin-top:11px;font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--muted)}
 
-/* cards */
-.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px;margin-top:44px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px;margin-top:40px}
 .card{background:linear-gradient(165deg,#121218,#0a0a0f);border:1px solid var(--line);border-radius:18px;
   padding:30px 26px;min-height:250px;display:flex;flex-direction:column;justify-content:flex-end;position:relative;
-  transition:transform .5s var(--ease),border-color .5s}
-.card:hover{border-color:rgba(232,176,75,.5);transform:translateY(-8px)}
+  overflow:hidden;transition:transform .5s var(--ease),border-color .5s}
+.card:hover{border-color:rgba(255,255,255,.28);transform:translateY(-8px)}
 .card .n{position:absolute;top:20px;left:24px;font-family:'Arial Black',sans-serif;font-size:48px;
   color:transparent;-webkit-text-stroke:1px #302d3a;line-height:1}
 .card h3{font-family:'Arial Black',sans-serif;font-size:19px;text-transform:uppercase;margin-bottom:9px}
 .card p{color:var(--muted);font-size:14px;line-height:1.6}
 .card .pr{margin-top:15px;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--acc)}
 
-/* work */
-.work{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;margin-top:40px}
+.work{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;margin-top:38px}
 .wc{position:relative;border-radius:16px;overflow:hidden;border:1px solid var(--line);background:#0a0a0f;
   aspect-ratio:4/3;display:block;text-decoration:none;transition:border-color .5s}
-.wc:hover{border-color:rgba(232,176,75,.55)}
+.wc:hover{border-color:rgba(255,255,255,.3)}
 .wc img{width:100%;height:100%;object-fit:cover;transform:scale(1.05);
   transition:transform 1.1s var(--ease),filter .7s;filter:saturate(.72) contrast(1.06)}
 .wc:hover img{transform:scale(1.15);filter:saturate(1.08)}
@@ -132,19 +210,21 @@ h2.big{font-size:clamp(36px,7.6vw,108px)}
 .wc h4{font-family:'Arial Black',sans-serif;font-size:16px;text-transform:uppercase;color:var(--ink);letter-spacing:-.01em}
 .wc p{color:var(--muted);font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;margin-top:5px}
 
-/* process */
-.steps{margin-top:40px;display:grid;gap:0}
-.step{display:grid;grid-template-columns:86px 1fr auto;gap:24px;align-items:center;padding:22px 0;
-  border-top:1px solid var(--line);transition:background .45s;padding-inline:16px}
+.steps{margin-top:36px}
+.step{display:grid;grid-template-columns:86px 1fr auto;gap:24px;align-items:center;padding:20px 16px;
+  border-top:1px solid var(--line);position:relative;transition:background .45s}
 .step:last-child{border-bottom:1px solid var(--line)}
-.step:hover{background:rgba(232,176,75,.04)}
+.step::after{content:'';position:absolute;left:0;top:0;height:100%;width:2px;background:var(--acc);
+  transform:scaleY(0);transform-origin:top;transition:transform .8s var(--ease);
+  transition-delay:calc(var(--d,0)*1ms + 700ms)}
+.slide.active .step::after{transform:scaleY(1)}
+.step:hover{background:rgba(255,255,255,.03)}
 .step .n{font-family:'Arial Black',sans-serif;font-size:14px;color:var(--acc)}
 .step h4{font-family:'Arial Black',sans-serif;font-size:clamp(16px,1.9vw,23px);text-transform:uppercase}
 .step p{color:var(--muted);font-size:14px;margin-top:6px;max-width:640px;line-height:1.6}
 .step .day{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);white-space:nowrap}
 
-/* price */
-.plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px;margin-top:44px}
+.plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px;margin-top:40px}
 .plan{background:#0b0b11;border:1px solid var(--line);border-radius:18px;padding:32px 26px;position:relative;
   overflow:hidden;transition:transform .55s var(--ease),border-color .5s}
 .plan:hover{transform:translateY(-9px)}
@@ -157,19 +237,17 @@ h2.big{font-size:clamp(36px,7.6vw,108px)}
 .plan li{display:flex;gap:10px;font-size:13.5px;color:#b4b0bb;line-height:1.5}
 .plan li::before{content:'→';color:var(--acc)}
 
-/* why */
-.why{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin-top:44px}
+.why{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin-top:40px}
 .wy{padding:30px 26px;border:1px solid var(--line);border-radius:18px;background:#0a0a10;position:relative;overflow:hidden}
 .wy::before{content:'';position:absolute;top:0;left:0;width:100%;height:2px;
   background:linear-gradient(90deg,var(--acc),transparent);transform:scaleX(0);transform-origin:left;
-  transition:transform .8s var(--ease)}
-.wy:hover::before{transform:scaleX(1)}
+  transition:transform 1s var(--ease);transition-delay:calc(var(--d,0)*1ms + 700ms)}
+.slide.active .wy::before{transform:scaleX(1)}
 .wy b{display:block;font-family:'Arial Black',sans-serif;font-size:15px;text-transform:uppercase;margin-bottom:10px;color:var(--acc)}
 .wy p{color:var(--muted);font-size:14px;line-height:1.65}
 
-/* contact */
 .ct{display:flex;flex-direction:column;align-items:flex-start;gap:20px}
-.links{display:flex;gap:14px;flex-wrap:wrap;margin-top:14px}
+.links{display:flex;gap:14px;flex-wrap:wrap;margin-top:12px}
 .btn{position:relative;display:inline-flex;align-items:center;gap:12px;padding:18px 36px;border-radius:100px;
   font-size:12px;letter-spacing:.22em;text-transform:uppercase;text-decoration:none;border:1px solid var(--line);
   background:transparent;color:var(--ink);overflow:hidden;cursor:pointer;transition:color .45s var(--ease)}
@@ -181,11 +259,10 @@ h2.big{font-size:clamp(36px,7.6vw,108px)}
 .btn.p{background:var(--acc);color:#0b0805;border-color:var(--acc)}
 .btn.p::before{background:var(--ink)}
 
-/* help overlay */
-.help{position:fixed;inset:0;z-index:70;background:rgba(4,4,7,.93);backdrop-filter:blur(14px);
+.help{position:fixed;inset:0;z-index:70;background:rgba(4,4,7,.94);backdrop-filter:blur(14px);
   display:grid;place-items:center;opacity:0;visibility:hidden;transition:all .4s var(--ease)}
 .help.on{opacity:1;visibility:visible}
-.help-in{text-align:center;display:grid;gap:16px}
+.help-in{text-align:center;display:grid;gap:14px}
 .help h3{font-family:'Arial Black',sans-serif;font-size:clamp(24px,4vw,44px);text-transform:uppercase;letter-spacing:-.02em}
 .help p{color:var(--muted);font-size:14px;letter-spacing:.1em}
 .help kbd{border:1px solid var(--line);border-radius:6px;padding:5px 11px;margin:0 4px;font:600 13px inherit;color:var(--ink)}
@@ -194,17 +271,18 @@ h2.big{font-size:clamp(36px,7.6vw,108px)}
   .step{grid-template-columns:1fr;gap:8px}
   .step .day{margin-top:6px}
   .dots{display:none}
+  .hint{display:none}
 }
 @media (prefers-reduced-motion:reduce){
   *{animation-duration:.01ms!important;transition-duration:.01ms!important}
-  .a,.mask>span{opacity:1!important;transform:none!important}
+  .a,.mask>span,.late{opacity:1!important;transform:none!important}
 }
 </style>
 </head>
 <body>
 
 <canvas id="bg"></canvas>
-<div class="grain"></div><div class="vig"></div><div class="flash" id="flash"></div>
+<div class="grain"></div><div class="vig"></div>
 
 <div class="top">
   <div class="brand"><i></i> Алексей · Web design</div>
@@ -213,169 +291,177 @@ h2.big{font-size:clamp(36px,7.6vw,108px)}
 
 <div class="stage" id="stage">
 
-  <!-- 1 TITLE -->
+  <!-- 1 -->
   <section class="slide">
     <div class="eyebrow a" style="--d:0">Презентация услуг · 2026</div>
     <h1 class="big">
-      <span class="mask"><span style="--d:120">Сайты,</span></span>
-      <span class="mask"><span style="--d:230">которые</span></span>
-      <span class="mask"><span style="--d:340"><em class="outline">записывают</em></span></span>
+      <span class="mask"><span style="--d:110">Сайты,</span></span>
+      <span class="mask"><span style="--d:210">которые</span></span>
+      <span class="mask"><span style="--d:310"><em class="outline">записывают</em></span></span>
     </h1>
-    <p class="lead a" style="--d:520">Барбершопы, салоны красоты, ногтевые и тату-студии.
+    <p class="lead a" style="--d:470">Барбершопы, салоны красоты, ногтевые и тату-студии.
       Цены, работы и онлайн-запись в одном месте — клиент не пишет в личку, он бронирует окно.</p>
-    <div class="ts-sub a" style="--d:660">
+    <div class="rule late" style="--d2:820"></div>
+    <div class="ts-sub late" style="--d2:1050">
       <div><b>6</b>концептов</div>
       <div><b>3–5</b>дней до запуска</div>
       <div><b>7 000 ₽</b>минимальный лендинг</div>
     </div>
   </section>
 
-  <!-- 2 PROBLEM -->
+  <!-- 2 -->
   <section class="slide">
     <div class="eyebrow a">01 — Проблема</div>
     <h2 class="big">
-      <span class="mask"><span style="--d:90">Красивый профиль</span></span>
-      <span class="mask"><span style="--d:190"><em class="outline">не приносит</em></span></span>
-      <span class="mask"><span style="--d:290">клиентов</span></span>
+      <span class="mask"><span style="--d:80">Красивый профиль</span></span>
+      <span class="mask"><span style="--d:170"><em class="outline">не приносит</em></span></span>
+      <span class="mask"><span style="--d:260">клиентов</span></span>
     </h2>
-    <p class="lead a" style="--d:420">Подписчики есть, а точки, где человек решает «записаться» — нет.
+    <p class="lead a" style="--d:390">Подписчики есть, а точки, где человек решает «записаться» — нет.
       Пока нет сайта, запись живёт в личке, и часть клиентов уходит к тому, у кого «есть сайт».</p>
-    <div class="stats a" style="--d:540">
-      <div class="stat"><b data-count="68" data-suffix="%">0</b><span>уходят без записи</span></div>
-      <div class="stat"><b data-count="2" data-suffix="×">0</b><span>рост среднего чека</span></div>
-      <div class="stat"><b data-count="24" data-suffix="/7">0</b><span>клиент пишет в личку</span></div>
-      <div class="stat"><b data-count="0" data-suffix="">0</b><span>сайтов у большинства</span></div>
+    <div class="rule late" style="--d2:760"></div>
+    <div class="stats late" style="--d2:980">
+      <div class="stat" style="--d:0"><b data-count="68" data-suffix="%">0</b><span>уходят без записи</span></div>
+      <div class="stat" style="--d:1"><b data-count="2" data-suffix="×">0</b><span>рост среднего чека</span></div>
+      <div class="stat" style="--d:2"><b data-count="24" data-suffix="/7">0</b><span>клиент пишет в личку</span></div>
+      <div class="stat" style="--d:3"><b data-count="0">0</b><span>сайтов у большинства</span></div>
     </div>
   </section>
 
-  <!-- 3 SOLUTION -->
+  <!-- 3 -->
   <section class="slide">
     <div class="eyebrow a">02 — Решение</div>
     <h2 class="big">
-      <span class="mask"><span style="--d:90">Сайт, который</span></span>
-      <span class="mask"><span style="--d:190"><em class="outline">записывает</em></span></span>
-      <span class="mask"><span style="--d:290">за тебя</span></span>
+      <span class="mask"><span style="--d:80">Сайт, который</span></span>
+      <span class="mask"><span style="--d:170"><em class="outline">записывают</em></span></span>
     </h2>
-    <div class="cards">
-      <div class="card a" style="--d:400"><div class="n">01</div><h3>Видит цены</h3>
+    <div class="rule late" style="--d2:700"></div>
+    <div class="cards late" style="--d2:900">
+      <div class="card" style="--d:0"><div class="n">01</div><h3>Видит цены</h3>
         <p>Прайс на странице вместо переписки. Человек отсеивается сам — тебе остаются тёплые.</p><div class="pr">без «а сколько стоит?»</div></div>
-      <div class="card a" style="--d:480"><div class="n">02</div><h3>Выбирает время</h3>
+      <div class="card" style="--d:1"><div class="n">02</div><h3>Выбирает время</h3>
         <p>Свободные окна онлайн. Яндекс Записи, 2ГИС или Telegram-бот — на выбор.</p><div class="pr">без звонка и переписки</div></div>
-      <div class="card a" style="--d:560"><div class="n">03</div><h3>Остаётся в работе</h3>
+      <div class="card" style="--d:2"><div class="n">03</div><h3>Остаётся в работе</h3>
         <p>Фото, отзывы и адрес с картой. Причина вернуться — и записаться снова.</p><div class="pr">средний чек и повторы</div></div>
     </div>
   </section>
 
-  <!-- 4 SERVICES -->
+  <!-- 4 -->
   <section class="slide">
     <div class="eyebrow a">03 — Форматы</div>
     <h2 class="big">
-      <span class="mask"><span style="--d:90">Четыре</span></span>
-      <span class="mask"><span style="--d:180"><em class="outline">формата</em></span></span>
+      <span class="mask"><span style="--d:80">Четыре</span></span>
+      <span class="mask"><span style="--d:160"><em class="outline">формата</em></span></span>
     </h2>
-    <div class="cards">
-      <div class="card a" style="--d:280"><div class="n">01</div><h3>Лендинг</h3>
+    <div class="rule late" style="--d2:680"></div>
+    <div class="cards late" style="--d2:860">
+      <div class="card" style="--d:0"><div class="n">01</div><h3>Лендинг</h3>
         <p>Одна страница: услуги, цены, работы, форма записи. Для запуска, акции или нового филиала.</p><div class="pr">от 7 000 ₽ · 3 дня</div></div>
-      <div class="card a" style="--d:350"><div class="n">02</div><h3>Сайт под ключ</h3>
+      <div class="card" style="--d:1"><div class="n">02</div><h3>Сайт под ключ</h3>
         <p>До 6 страниц, блог, галерея, SEO-разметка. Для салонов, которые хотят окупать рекламу.</p><div class="pr">от 25 000 ₽ · 10 дней</div></div>
-      <div class="card a" style="--d:420"><div class="n">03</div><h3>Дизайн-концепт</h3>
+      <div class="card" style="--d:2"><div class="n">03</div><h3>Дизайн-концепт</h3>
         <p>Визуальное направление до того, как потратишь деньги на разработку. Защищает идею внутри.</p><div class="pr">от 4 000 ₽ · 1 день</div></div>
-      <div class="card a" style="--d:490"><div class="n">04</div><h3>Онлайн-запись</h3>
+      <div class="card" style="--d:3"><div class="n">04</div><h3>Онлайн-запись</h3>
         <p>Подключение и настройка записи на твой домен или в твою соцсеть.</p><div class="pr">от 3 500 ₽ · 1 день</div></div>
     </div>
   </section>
 
-  <!-- 5 WORK -->
+  <!-- 5 -->
   <section class="slide">
     <div class="eyebrow a">04 — Работы</div>
     <h2 class="big">
-      <span class="mask"><span style="--d:90">Шесть <em class="outline">концептов</em></span></span>
+      <span class="mask"><span style="--d:80">Шесть <em class="outline">концептов</em></span></span>
     </h2>
-    <div class="work">
-      <a class="wc a" style="--d:220" href="https://morphlxngg.github.io/#/projects/prestige" target="_blank" rel="noopener">
+    <div class="rule late" style="--d2:660"></div>
+    <div class="work late" style="--d2:840">
+      <a class="wc" style="--d:0" href="https://morphlxngg.github.io/#/projects/prestige" target="_blank" rel="noopener">
         <img src="/assets/images/prestige-cover.png" alt="Prestige Barber Co"><div class="v"></div>
         <div class="m"><h4>Prestige Barber Co</h4><p>Барбершоп</p></div></a>
-      <a class="wc a" style="--d:280" href="https://morphlxngg.github.io/#/projects/day-hair" target="_blank" rel="noopener">
+      <a class="wc" style="--d:1" href="https://morphlxngg.github.io/#/projects/day-hair" target="_blank" rel="noopener">
         <img src="/assets/images/day-hair-cover.png" alt="Day Hair Habit"><div class="v"></div>
         <div class="m"><h4>Day Hair Habit</h4><p>Салон красоты</p></div></a>
-      <a class="wc a" style="--d:340" href="https://morphlxngg.github.io/#/projects/pitstop" target="_blank" rel="noopener">
-        <img src="/assets/images/pitstop-cover.png" alt="Pitstop Barbershop"><div class="v"></div>
+      <a class="wc" style="--d:2" href="https://morphlxngg.github.io/#/projects/pitstop" target="_blank" rel="noopener">
+        <img src="/assets/images/pitstop-cover.png" alt="Pitstop"><div class="v"></div>
         <div class="m"><h4>Pitstop</h4><p>Автосервис</p></div></a>
-      <a class="wc a" style="--d:400" href="https://morphlxngg.github.io/concepts/arizona/" target="_blank" rel="noopener">
+      <a class="wc" style="--d:3" href="https://morphlxngg.github.io/concepts/arizona/" target="_blank" rel="noopener">
         <img src="/assets/images/arizona-cover.svg" alt="Arizona"><div class="v"></div>
         <div class="m"><h4>Arizona</h4><p>Тату · Казань</p></div></a>
-      <a class="wc a" style="--d:460" href="https://morphlxngg.github.io/concepts/pinky/" target="_blank" rel="noopener">
+      <a class="wc" style="--d:4" href="https://morphlxngg.github.io/concepts/pinky/" target="_blank" rel="noopener">
         <img src="/assets/images/pinky-cover.svg" alt="Pinky"><div class="v"></div>
         <div class="m"><h4>Pinky</h4><p>Маникюр · Воронеж</p></div></a>
-      <a class="wc a" style="--d:520" href="https://morphlxngg.github.io/concepts/detailing/" target="_blank" rel="noopener">
+      <a class="wc" style="--d:5" href="https://morphlxngg.github.io/concepts/detailing/" target="_blank" rel="noopener">
         <img src="/assets/images/detailing-cover.svg" alt="Apex Detailing"><div class="v"></div>
         <div class="m"><h4>Apex Detailing</h4><p>Детейлинг</p></div></a>
     </div>
   </section>
 
-  <!-- 6 PROCESS -->
+  <!-- 6 -->
   <section class="slide">
     <div class="eyebrow a">05 — Процесс</div>
     <h2 class="big">
-      <span class="mask"><span style="--d:90">Пять <em class="outline">дней</em></span></span>
+      <span class="mask"><span style="--d:80">Пять <em class="outline">дней</em></span></span>
     </h2>
-    <div class="steps">
-      <div class="step a" style="--d:200"><div class="n">01</div>
+    <div class="rule late" style="--d2:640"></div>
+    <div class="steps late" style="--d2:820">
+      <div class="step" style="--d:0"><div class="n">01</div>
         <div><h4>Бриф</h4><p>15 минут: ниша, услуги, цены, кто клиент и что должно случиться после захода.</p></div><div class="day">День 1</div></div>
-      <div class="step a" style="--d:260"><div class="n">02</div>
+      <div class="step" style="--d:1"><div class="n">02</div>
         <div><h4>Концепт</h4><p>Визуальное направление и структура. Смотришь на экран и говоришь «да» или «не то».</p></div><div class="day">День 1</div></div>
-      <div class="step a" style="--d:320"><div class="n">03</div>
+      <div class="step" style="--d:2"><div class="n">03</div>
         <div><h4>Дизайн и тексты</h4><p>Макеты, фото, формулировки. Пишу сам — без «повышение лояльности клиентской базы».</p></div><div class="day">День 2–3</div></div>
-      <div class="step a" style="--d:380"><div class="n">04</div>
+      <div class="step" style="--d:3"><div class="n">04</div>
         <div><h4>Разработка</h4><p>Вёрстка, адаптив, запись, аналитика. На телефоне выглядит так же, как на ноутбуке.</p></div><div class="day">День 3–4</div></div>
-      <div class="step a" style="--d:440"><div class="n">05</div>
+      <div class="step" style="--d:4"><div class="n">05</div>
         <div><h4>Запуск</h4><p>Публикую, проверяю формы, ставлю в Яндекс и 2ГИС. Заявки идут тебе в Telegram.</p></div><div class="day">День 5</div></div>
     </div>
   </section>
 
-  <!-- 7 PRICE -->
+  <!-- 7 -->
   <section class="slide">
     <div class="eyebrow a">06 — Цены</div>
     <h2 class="big">
-      <span class="mask"><span style="--d:90">Фиксированная цена.</span></span>
-      <span class="mask"><span style="--d:190"><em class="outline">Без сюрпризов</em></span></span>
+      <span class="mask"><span style="--d:80">Фиксированная цена.</span></span>
+      <span class="mask"><span style="--d:170"><em class="outline">Без сюрпризов</em></span></span>
     </h2>
-    <div class="plans">
-      <div class="plan a" style="--d:300"><h4>Концепт</h4><div class="v">4 000 ₽</div>
+    <div class="rule late" style="--d2:660"></div>
+    <div class="plans late" style="--d2:860">
+      <div class="plan" style="--d:0"><h4>Концепт</h4><div class="v">4 000 ₽</div>
         <ul><li>Визуальное направление</li><li>Структура страниц</li><li>1 экран в высоком разрешении</li></ul></div>
-      <div class="plan hot a" style="--d:370"><span class="tg">Чаще всего</span><h4>Лендинг</h4><div class="v">7 000 ₽</div>
+      <div class="plan hot" style="--d:1"><span class="tg">Чаще всего</span><h4>Лендинг</h4><div class="v">7 000 ₽</div>
         <ul><li>Одна страница под задачу</li><li>Цены, работы, форма записи</li><li>Адаптив под телефон</li><li>Запуск за 3 дня</li></ul></div>
-      <div class="plan a" style="--d:440"><h4>Сайт под ключ</h4><div class="v">25 000 ₽</div>
+      <div class="plan" style="--d:2"><h4>Сайт под ключ</h4><div class="v">25 000 ₽</div>
         <ul><li>До 6 страниц</li><li>Блог и галерея</li><li>Онлайн-запись</li><li>SEO и аналитика</li></ul></div>
     </div>
   </section>
 
-  <!-- 8 WHY -->
+  <!-- 8 -->
   <section class="slide">
     <div class="eyebrow a">07 — Почему я</div>
     <h2 class="big">
-      <span class="mask"><span style="--d:90">Работаю</span></span>
-      <span class="mask"><span style="--d:180"><em class="outline">с бьюти-бизнесом</em></span></span>
+      <span class="mask"><span style="--d:80">Работаю</span></span>
+      <span class="mask"><span style="--d:170"><em class="outline">с бьюти-бизнесом</em></span></span>
     </h2>
-    <div class="why">
-      <div class="wy a" style="--d:300"><b>Ниша</b><p>Барбершопы, салоны, ногти, тату. Знаю, как выглядит индустрия и что болит.</p></div>
-      <div class="wy a" style="--d:360"><b>Скорость</b><p>Лендинг — 3 дня. Не месяц на согласование и не «когда будет дизайнер».</p></div>
-      <div class="wy a" style="--d:420"><b>Тексты сам</b><p>Никаких «услуг по повышению лояльности». Пишу так, как говоришь ты, только чётче.</p></div>
-      <div class="wy a" style="--d:480"><b>Запись сразу</b><p>Сайт без подключённой записи — просто визитка. Подключаю в тот же день.</p></div>
+    <div class="rule late" style="--d2:660"></div>
+    <div class="why late" style="--d2:860">
+      <div class="wy" style="--d:0"><b>Ниша</b><p>Барбершопы, салоны, ногти, тату. Знаю, как выглядит индустрия и что болит.</p></div>
+      <div class="wy" style="--d:1"><b>Скорость</b><p>Лендинг — 3 дня. Не месяц на согласование и не «когда будет дизайнер».</p></div>
+      <div class="wy" style="--d:2"><b>Тексты сам</b><p>Никаких «услуг по повышению лояльности». Пишу так, как говоришь ты, только чётче.</p></div>
+      <div class="wy" style="--d:3"><b>Запись сразу</b><p>Сайт без подключённой записи — просто визитка. Подключаю в тот же день.</p></div>
     </div>
   </section>
 
-  <!-- 9 CONTACT -->
+  <!-- 9 -->
   <section class="slide">
     <div class="ct">
       <div class="eyebrow a">08 — Контакты</div>
       <h2 class="big">
-        <span class="mask"><span style="--d:90">Давай</span></span>
-        <span class="mask"><span style="--d:180"><em class="outline">сделаем</em></span></span>
+        <span class="mask"><span style="--d:80">Давай</span></span>
+        <span class="mask"><span style="--d:170"><em class="outline">сделаем</em></span></span>
       </h2>
-      <p class="lead a" style="--d:300">Напиши — отвечу в течение дня. Скажи нишу и задачу, пришлю
+      <p class="lead a" style="--d:290">Напиши — отвечу в течение дня. Скажи нишу и задачу, пришлю
         бесплатный мини-концепт под тебя: визуал, структура и смета.</p>
-      <div class="links a" style="--d:420">
+      <div class="rule late" style="--d2:700"></div>
+      <div class="links late" style="--d2:920">
         <a class="btn p" href="https://t.me/morphlxng" target="_blank" rel="noopener"><span>Telegram @morphlxng</span></a>
         <a class="btn" href="mailto:nevizhin40@gmail.com"><span>nevizhin40@gmail.com</span></a>
         <a class="btn" href="https://morphlxngg.github.io/" target="_blank" rel="noopener"><span>Портфолио</span></a>
@@ -384,12 +470,13 @@ h2.big{font-size:clamp(36px,7.6vw,108px)}
   </section>
 </div>
 
-<div class="hint" id="hint">Листай <kbd>→</kbd> или нажми <kbd>?</kbd> для подсказок</div>
+<div class="hint" id="hint">Листай <kbd>→</kbd> · авто <kbd>A</kbd> · подсказки <kbd>?</kbd></div>
 
 <div class="bottom">
   <div class="nav">
     <button class="nb" id="prev" aria-label="Назад">←</button>
     <button class="nb" id="next" aria-label="Вперёд">→</button>
+    <div class="ring" id="ring" title="Автопереключение — клик или A"><span id="ringIcon">⏸</span></div>
   </div>
   <div class="counter"><b id="cur">01</b> / <span id="tot">09</span></div>
 </div>
@@ -401,8 +488,9 @@ h2.big{font-size:clamp(36px,7.6vw,108px)}
     <p><kbd>←</kbd><kbd>PgUp</kbd> предыдущий слайд</p>
     <p><kbd>1</kbd>…<kbd>9</kbd> переход к слайду</p>
     <p><kbd>Home</kbd><kbd>End</kbd> в начало / в конец</p>
-    <p><kbd>F</kbd> полный экран &nbsp;·&nbsp; свайп влево/вправо на телефоне</p>
-    <p style="margin-top:10px;color:#5b5765">нажми <kbd>?</kbd> или <kbd>Esc</kbd> чтобы закрыть</p>
+    <p><kbd>A</kbd> автопереключение вкл/выкл &nbsp;·&nbsp; <kbd>F</kbd> полный экран</p>
+    <p>свайп влево/вправо на телефоне · клик по экрану — вперёд</p>
+    <p style="margin-top:10px;color:#5b5765"><kbd>?</kbd> или <kbd>Esc</kbd> — закрыть</p>
   </div>
 </div>
 
@@ -419,13 +507,12 @@ const total = slides.length;
 $('#tot').textContent = pad(total);
 let idx = 0, busy = false;
 
-/* accent colour shifts per slide */
 const ACCENTS = ['#e8b04b', '#f0a63c', '#e8705c', '#d76fc4', '#a97bf0', '#6fb0f0', '#4fc9a8', '#e8b04b', '#e8b04b'];
-function setAccent(i) {
+const setAccent = (i) => {
   const c = ACCENTS[i % ACCENTS.length];
   document.documentElement.style.setProperty('--acc', c);
   document.documentElement.style.setProperty('--acc2', c);
-}
+};
 
 /* dots */
 const dots = $('#dots');
@@ -438,32 +525,23 @@ slides.forEach((_, i) => {
 });
 const dotEls = $$('.dot');
 
-/* stagger delays for .a elements inside every slide */
+/* auto-assign delays if not set inline */
 slides.forEach(s => $$('.a', s).forEach((el, i) => {
-  if (!el.style.getPropertyValue('--d')) el.style.setProperty('--d', 420 + i * 55);
+  if (!el.style.getPropertyValue('--d')) el.style.setProperty('--d', 380 + i * 55);
 }));
 
+/* counters */
 function countUp(el) {
   const target = parseFloat(el.dataset.count);
   const suf = el.dataset.suffix || '';
   if (REDUCED) { el.textContent = target + suf; return; }
-  const t0 = performance.now(), dur = 1400;
+  const t0 = performance.now(), dur = 1500;
   const step = (now) => {
     const k = Math.min(1, (now - t0) / dur);
     el.textContent = Math.round(target * (1 - Math.pow(1 - k, 3))) + suf;
     if (k < 1) requestAnimationFrame(step);
   };
   requestAnimationFrame(step);
-}
-
-function resetCounters(s) {
-  $$('[data-count]', s).forEach(el => { el.textContent = '0'; });
-}
-
-function flash() {
-  if (REDUCED) return;
-  const f = $('#flash');
-  f.animate([{ opacity: .34 }, { opacity: 0 }], { duration: 620, easing: 'cubic-bezier(.16,1,.3,1)' });
 }
 
 function show(i, dir) {
@@ -482,25 +560,25 @@ function show(i, dir) {
   to.classList.add(dir > 0 ? 'enter-fwd' : 'enter-back');
   to.classList.add('active');
 
-  // restart inner animations
-  $$('.a', to).forEach((el) => {
+  // restart entrance cascades + late wave on the incoming slide
+  $$('.a, .late, .mask > span', to).forEach(el => {
     el.style.transition = 'none';
     void el.offsetWidth;
     el.style.transition = '';
   });
-  $$('[data-count]', to).forEach(el => setTimeout(() => countUp(el), 480));
+  $$('[data-count]', to).forEach(el => setTimeout(() => countUp(el), 1100));
 
   idx = i;
   setAccent(i);
   sync();
-  flash();
   location.hash = 's' + (i + 1);
+  resetAuto();
 
   setTimeout(() => {
     from.classList.remove('exit-fwd', 'exit-back');
     to.classList.remove('enter-fwd', 'enter-back');
     busy = false;
-  }, REDUCED ? 30 : 820);
+  }, REDUCED ? 30 : 760);
 }
 
 function sync() {
@@ -510,15 +588,49 @@ function sync() {
   $('#next').disabled = idx === total - 1;
 }
 
-function go(i) { show(i); }
-const next = () => show(Math.min(idx + 1, total - 1), 1);
-const prev = () => show(Math.max(idx - 1, 0), -1);
+const go = (i) => show(i);
+const next = () => show(idx + 1 >= total ? 0 : idx + 1, 1);
+const prev = () => show(idx - 1 < 0 ? total - 1 : idx - 1, -1);
 
-/* controls */
 $('#next').addEventListener('click', next);
 $('#prev').addEventListener('click', prev);
 
-/* keyboard */
+/* ---------- autoplay ---------- */
+const AUTO_MS = 11000;
+let auto = true;
+let autoT0 = performance.now();
+let hidden = false, helpOpen = false;
+
+const ring = $('#ring'), ringIcon = $('#ringIcon');
+ring.classList.toggle('paused', !auto);
+ringIcon.textContent = auto ? '⏸' : '▶';
+
+function autoActive() { return auto && !hidden && !helpOpen && !busy; }
+function resetAuto() { autoT0 = performance.now(); }
+
+function tick() {
+  if (autoActive()) {
+    const k = Math.min(1, (performance.now() - autoT0) / AUTO_MS);
+    ring.style.setProperty('--p', (k * 360).toFixed(1) + 'deg');
+    if (k >= 1) next();
+  } else {
+    ring.style.setProperty('--p', '0deg');
+  }
+  requestAnimationFrame(tick);
+}
+requestAnimationFrame(tick);
+
+function setAuto(v) {
+  auto = v;
+  ring.classList.toggle('paused', !auto);
+  ringIcon.textContent = auto ? '⏸' : '▶';
+  resetAuto();
+}
+ring.addEventListener('click', () => setAuto(!auto));
+
+document.addEventListener('visibilitychange', () => { hidden = document.hidden; if (!hidden) resetAuto(); });
+
+/* ---------- keyboard ---------- */
 addEventListener('keydown', (e) => {
   if (e.metaKey || e.ctrlKey || e.altKey) return;
   const k = e.key;
@@ -526,8 +638,14 @@ addEventListener('keydown', (e) => {
   else if (k === 'ArrowLeft' || k === 'PageUp' || k === 'Backspace') { e.preventDefault(); prev(); }
   else if (k === 'Home') { e.preventDefault(); go(0); }
   else if (k === 'End') { e.preventDefault(); go(total - 1); }
-  else if (k === '?' || k === '/') { e.preventDefault(); $('#help').classList.toggle('on'); }
-  else if (k === 'Escape') { $('#help').classList.remove('on'); }
+  else if (k === '?' || k === '/') {
+    e.preventDefault();
+    helpOpen = !helpOpen;
+    $('#help').classList.toggle('on', helpOpen);
+    resetAuto();
+  }
+  else if (k === 'Escape') { helpOpen = false; $('#help').classList.remove('on'); resetAuto(); }
+  else if (k === 'a' || k === 'A' || k === 'ф' || k === 'Ф') { e.preventDefault(); setAuto(!auto); }
   else if (k === 'f' || k === 'F' || k === 'а' || k === 'А') {
     e.preventDefault();
     document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen().catch(() => {});
@@ -535,33 +653,32 @@ addEventListener('keydown', (e) => {
   else if (/^[1-9]$/.test(k)) { e.preventDefault(); go(parseInt(k, 10) - 1); }
 });
 
-/* swipe */
+/* ---------- swipe ---------- */
 let tx = 0, ty = 0;
 addEventListener('touchstart', (e) => { tx = e.changedTouches[0].clientX; ty = e.changedTouches[0].clientY; }, { passive: true });
 addEventListener('touchend', (e) => {
-  const dx = e.changedTouches[0].clientX - tx;
-  const dy = e.changedTouches[0].clientY - ty;
+  const dx = e.changedTouches[0].clientX - tx, dy = e.changedTouches[0].clientY - ty;
   if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy)) (dx < 0 ? next : prev)();
 }, { passive: true });
 
-/* wheel (throttled) */
+/* ---------- wheel ---------- */
 let wlock = false;
 addEventListener('wheel', (e) => {
   if (wlock) return;
   const d = Math.abs(e.deltaY) > Math.abs(e.deltaX) ? e.deltaY : e.deltaX;
   if (Math.abs(d) < 32) return;
   wlock = true;
-  setTimeout(() => { wlock = false; }, REDUCED ? 220 : 900);
+  setTimeout(() => { wlock = false; }, REDUCED ? 220 : 850);
   (d > 0 ? next : prev)();
 }, { passive: true });
 
-/* click on empty area = next (like a real deck) */
+/* ---------- click to advance ---------- */
 $('#stage').addEventListener('click', (e) => {
-  if (e.target.closest('a,button,.dot,.nb')) return;
-  if (e.clientX < innerWidth * .12) prev(); else next();
+  if (e.target.closest('a,button,.dot,.nb,.ring')) return;
+  if (e.clientX < innerWidth * .1) prev(); else next();
 });
 
-/* particles */
+/* ---------- particles ---------- */
 (function particles() {
   const cv = $('#bg'), ctx = cv.getContext('2d');
   let w, h, pts = [], mx = -9999, my = -9999;
@@ -580,17 +697,14 @@ $('#stage').addEventListener('click', (e) => {
   addEventListener('resize', resize, { passive: true });
   addEventListener('mousemove', (e) => { mx = e.clientX; my = e.clientY; }, { passive: true });
   resize();
-  function frame() {
+  (function frame() {
     ctx.clearRect(0, 0, w, h);
     for (const p of pts) {
       p.x += p.vx; p.y += p.vy;
       if (p.x < -20) p.x = w + 20; if (p.x > w + 20) p.x = -20;
       if (p.y < -20) p.y = h + 20; if (p.y > h + 20) p.y = -20;
       const dx = p.x - mx, dy = p.y - my, d2 = dx * dx + dy * dy;
-      if (d2 < 20000) {
-        const f = (20000 - d2) / 20000 * .85, d = Math.sqrt(d2) || 1;
-        p.x += (dx / d) * f; p.y += (dy / d) * f;
-      }
+      if (d2 < 20000) { const f = (20000 - d2) / 20000 * .85, d = Math.sqrt(d2) || 1; p.x += (dx / d) * f; p.y += (dy / d) * f; }
       ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, 6.2832);
       ctx.fillStyle = 'rgba(232,176,75,.5)'; ctx.fill();
     }
@@ -603,20 +717,56 @@ $('#stage').addEventListener('click', (e) => {
       }
     }
     requestAnimationFrame(frame);
-  }
-  frame();
+  })();
 })();
 
-/* boot */
-const start = Math.max(0, Math.min(total - 1, (parseInt((location.hash || '').replace('#s', ''), 10) || 1) - 1));
+/* ---------- boot ---------- */
+const h = parseInt((location.hash || '').replace('#s', ''), 10);
+const start = Number.isFinite(h) ? Math.max(0, Math.min(total - 1, h - 1)) : 0;
+
+/* auto-fit: shrink dense slides so nothing ever spills out of the frame.
+   Uses offsetHeight (layout box) - getBoundingClientRect would include the
+   3D transform and report wrong numbers mid-transition. */
+function contentHeight(s) {
+  let g = 0;
+  [...s.children].forEach(c => {
+    const cs = getComputedStyle(c);
+    g += c.offsetHeight + parseFloat(cs.marginTop || 0) + parseFloat(cs.marginBottom || 0);
+  });
+  const cs = getComputedStyle(s);
+  return g + parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom);
+}
+function fitSlides() {
+  const vh = innerHeight;
+  slides.forEach(s => {
+    s.classList.remove('tight', 'xtight');
+    const over = contentHeight(s) - vh;
+    if (over > 0) s.classList.add(over > vh * 0.16 ? 'xtight' : 'tight');
+  });
+}
+
 slides[0].classList.remove('active');
 slides[start].classList.add('active');
 idx = start;
 setAccent(start);
-resetCounters(slides[start]);
-setTimeout(() => $$('[data-count]', slides[start]).forEach(el => countUp(el)), 420);
+fitSlides();
 sync();
-setTimeout(() => { const h = $('#hint'); if (h) h.style.opacity = '0'; }, 7000);
+setTimeout(() => $$('[data-count]', slides[start]).forEach(el => countUp(el)), 1100);
+setTimeout(() => { const el = $('#hint'); if (el) el.style.opacity = '0'; }, 8000);
+
+let fitTimer;
+function scheduleFit(delay) {
+  clearTimeout(fitTimer);
+  fitTimer = setTimeout(fitSlides, delay);
+}
+addEventListener('resize', () => scheduleFit(180), { passive: true });
+addEventListener('load', () => scheduleFit(60));
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => scheduleFit(40));
+$$('img').forEach(im => {
+  if (!im.complete) im.addEventListener('load', () => scheduleFit(50), { once: true });
+});
+setTimeout(fitSlides, 500);
+setTimeout(fitSlides, 1500);
 })();
 </script>
 </body>
