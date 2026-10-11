@@ -1,0 +1,809 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Алексей — презентация (3D)</title>
+<meta name="description" content="3D-вариант презентации: переворот слайдов, зум с motion blur, перетаскивание мышью.">
+<style>
+:root{
+  --bg:#06060a; --ink:#f4f2ee; --muted:#8d8994;
+  --acc:#e8b04b; --line:rgba(255,255,255,.09);
+  --ease:cubic-bezier(.16,1,.3,1); --auto:6s;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);overflow:hidden;
+  font-family:'Inter','Segoe UI',system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased}
+canvas#bg{position:fixed;inset:0;z-index:0}
+.grain{position:fixed;inset:-50%;z-index:60;pointer-events:none;opacity:.045;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
+  animation:grain .55s steps(3) infinite}
+@keyframes grain{0%{transform:translate(0,0)}33%{transform:translate(-3%,2%)}66%{transform:translate(2%,-3%)}100%{transform:translate(0,0)}}
+.vig{position:fixed;inset:0;z-index:59;pointer-events:none;
+  background:radial-gradient(ellipse 120% 90% at 50% 50%,transparent 38%,rgba(0,0,0,.85) 100%)}
+
+/* motion-blur smear: soft whoosh, no blinking flash */
+#smear{position:fixed;inset:0;z-index:55;pointer-events:none;opacity:0;
+  background:
+    radial-gradient(ellipse 70% 50% at 50% 50%,rgba(255,255,255,.13),transparent 65%),
+    linear-gradient(90deg,transparent,rgba(232,176,75,.10),transparent);
+  mix-blend-mode:screen}
+
+/* ---------- chrome ---------- */
+.top{position:fixed;top:0;left:0;right:0;z-index:40;display:flex;align-items:center;gap:18px;
+  padding:22px clamp(20px,4vw,48px);pointer-events:none}
+.brand{display:flex;align-items:center;gap:11px;font-size:11px;letter-spacing:.34em;text-transform:uppercase;color:var(--muted)}
+.brand i{width:9px;height:9px;border-radius:50%;background:var(--acc);box-shadow:0 0 14px var(--acc);
+  animation:bp 2.4s ease-in-out infinite}
+@keyframes bp{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.7)}}
+.dots{margin-left:auto;display:flex;gap:7px;pointer-events:auto}
+.dot{width:24px;height:4px;border-radius:3px;background:rgba(255,255,255,.16);cursor:pointer;transition:all .4s var(--ease)}
+.dot.on{width:44px;background:var(--acc)}
+.bottom{position:fixed;bottom:0;left:0;right:0;z-index:40;display:flex;align-items:center;gap:16px;
+  padding:22px clamp(20px,4vw,48px);pointer-events:none}
+.nav{display:flex;gap:9px;pointer-events:auto;align-items:center}
+.nb{width:46px;height:46px;border-radius:50%;border:1px solid var(--line);background:rgba(255,255,255,.03);
+  color:var(--ink);cursor:pointer;display:grid;place-items:center;transition:all .35s var(--ease);backdrop-filter:blur(8px)}
+.nb:hover:not(:disabled){background:var(--acc);color:#0b0805;border-color:var(--acc);transform:scale(1.08)}
+.nb:disabled{opacity:.2;cursor:not-allowed}
+.nb.mode{font-size:9.5px;letter-spacing:.16em;font-weight:700}
+.ring{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;position:relative;cursor:pointer;
+  background:conic-gradient(var(--acc) var(--p,0deg),rgba(255,255,255,.12) 0);transition:opacity .35s ease}
+.ring::before{content:'';position:absolute;inset:3px;border-radius:50%;background:#08080c}
+.ring span{position:relative;font-size:13px}
+.ring.paused{opacity:.3}
+.counter{margin-left:auto;font-size:11px;letter-spacing:.3em;color:var(--muted);font-variant-numeric:tabular-nums;pointer-events:none}
+.counter b{color:var(--ink)}
+.tmode{position:fixed;bottom:82px;right:clamp(20px,4vw,48px);z-index:41;font-size:9.5px;letter-spacing:.26em;
+  text-transform:uppercase;color:#5b5765;background:none;border:1px solid var(--line);border-radius:100px;
+  padding:8px 15px;cursor:pointer;transition:all .3s var(--ease);backdrop-filter:blur(8px)}
+.tmode:hover{color:var(--acc);border-color:var(--acc)}
+.hint{position:fixed;bottom:82px;left:0;right:0;text-align:center;font-size:10px;letter-spacing:.3em;
+  color:#5b5765;text-transform:uppercase;z-index:40;pointer-events:none;transition:opacity .7s}
+.hint kbd{border:1px solid var(--line);border-radius:5px;padding:3px 7px;margin:0 3px;font:inherit}
+
+/* ---------- 3D stage ---------- */
+.stage{position:fixed;inset:0;z-index:10;perspective:1900px;perspective-origin:50% 50%}
+.slide{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;
+  padding:clamp(84px,10.5vh,124px) clamp(20px,6vw,110px) clamp(88px,11.5vh,124px);
+  opacity:0;visibility:hidden;pointer-events:none;overflow:hidden;
+  backface-visibility:hidden;transform-origin:left center;will-change:transform,filter,opacity}
+.slide.active{opacity:1;visibility:visible;pointer-events:auto}
+.dragging{cursor:grabbing!important}
+
+/* --- transition: 3D flip --- */
+.slide.flip-out-fwd{animation:flipOutF .62s var(--ease) both;visibility:visible;transform-origin:left center}
+.slide.flip-in-fwd{animation:flipInF .62s var(--ease) both;transform-origin:right center}
+.slide.flip-out-back{animation:flipOutB .62s var(--ease) both;visibility:visible;transform-origin:right center}
+.slide.flip-in-back{animation:flipInB .62s var(--ease) both;transform-origin:left center}
+@keyframes flipOutF{to{transform:rotateY(-108deg) scale(.9);filter:blur(9px);opacity:0}}
+@keyframes flipInF{from{transform:rotateY(108deg) scale(.9);filter:blur(9px);opacity:0}to{transform:none;filter:none;opacity:1}}
+@keyframes flipOutB{to{transform:rotateY(108deg) scale(.9);filter:blur(9px);opacity:0}}
+@keyframes flipInB{from{transform:rotateY(-108deg) scale(.9);filter:blur(9px);opacity:0}to{transform:none;filter:none;opacity:1}}
+
+/* --- transition: zoom + motion blur --- */
+.slide.zoom-out-fwd{animation:zoomOutF .78s var(--ease) both;visibility:visible;transform-origin:center}
+.slide.zoom-in-fwd{animation:zoomInF .78s var(--ease) both;transform-origin:center}
+.slide.zoom-out-back{animation:zoomOutB .78s var(--ease) both;visibility:visible;transform-origin:center}
+.slide.zoom-in-back{animation:zoomInB .78s var(--ease) both;transform-origin:center}
+@keyframes zoomOutF{
+  0%{transform:scale(1);filter:blur(0);opacity:1}
+  60%{opacity:.5}
+  100%{transform:scale(2.1) translateZ(240px);filter:blur(30px);opacity:0}}
+@keyframes zoomInF{
+  0%{transform:scale(.45) translateZ(-240px);filter:blur(30px);opacity:0}
+  55%{opacity:1}
+  100%{transform:scale(1);filter:blur(0);opacity:1}}
+@keyframes zoomOutB{
+  0%{transform:scale(1);filter:blur(0);opacity:1}
+  60%{opacity:.5}
+  100%{transform:scale(.42) translateZ(-240px);filter:blur(30px);opacity:0}}
+@keyframes zoomInB{
+  0%{transform:scale(2.2) translateZ(240px);filter:blur(30px);opacity:0}
+  55%{opacity:1}
+  100%{transform:scale(1);filter:blur(0);opacity:1}}
+
+/* --- entrance --- */
+.a{opacity:0;transform:translateY(30px);transition:opacity .5s var(--ease),transform .58s var(--ease);
+  transition-delay:min(calc(var(--d,0)*1ms),240ms)}
+.slide.active .a{opacity:1;transform:none}
+.mask{display:block;overflow:hidden}
+.mask>span{display:block;transform:translateY(108%) rotate(5deg);transition:transform .62s var(--ease);
+  transition-delay:min(calc(var(--d,0)*1ms),240ms)}
+.slide.active .mask>span{transform:none}
+.rule{height:2px;width:min(520px,66%);margin-top:24px;overflow:hidden;background:rgba(255,255,255,.07)}
+.rule::after{content:'';display:block;height:100%;width:100%;transform:scaleX(0);transform-origin:left;
+  background:linear-gradient(90deg,var(--acc),transparent);transition:transform .6s var(--ease);
+  transition-delay:min(calc(var(--d2,900)*1ms),380ms)}
+.slide.active .rule::after{transform:scaleX(1)}
+
+.eyebrow{display:inline-flex;align-items:center;gap:13px;font-size:11px;letter-spacing:.42em;
+  text-transform:uppercase;color:var(--acc);margin-bottom:24px}
+.eyebrow::before{content:'';width:40px;height:1px;background:var(--acc);transform-origin:left;
+  animation:grow .8s var(--ease) both}
+@keyframes grow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+h1.big,h2.big{font-family:'Arial Black',Impact,sans-serif;font-weight:900;text-transform:uppercase;
+  letter-spacing:-.04em;line-height:.86}
+h1.big{font-size:clamp(50px,13vw,180px)}
+h2.big{font-size:clamp(34px,7.2vw,102px)}
+.outline{color:transparent;-webkit-text-stroke:1.4px var(--acc)}
+.lead{max-width:620px;margin-top:26px;font-size:clamp(15px,1.45vw,18px);line-height:1.7;color:var(--muted)}
+
+.ts-sub{display:flex;gap:42px;flex-wrap:wrap;margin-top:44px;padding-top:30px;border-top:1px solid var(--line)}
+.ts-sub div{font-size:12px;letter-spacing:.24em;text-transform:uppercase;color:var(--muted)}
+.ts-sub b{display:block;font-family:'Arial Black',sans-serif;font-size:clamp(23px,2.8vw,36px);color:var(--ink);margin-bottom:7px}
+
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1px;background:var(--line);
+  border:1px solid var(--line);border-radius:18px;overflow:hidden;margin-top:38px}
+.stat{background:#0b0b11;padding:30px 24px;position:relative;overflow:hidden}
+.stat b{display:block;font-family:'Arial Black',sans-serif;font-size:clamp(32px,4.6vw,54px);line-height:1;letter-spacing:-.04em}
+.stat span{display:block;margin-top:10px;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
+
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(245px,1fr));gap:15px;margin-top:38px}
+.card{background:linear-gradient(165deg,#121218,#0a0a0f);border:1px solid var(--line);border-radius:18px;
+  padding:28px 24px;min-height:235px;display:flex;flex-direction:column;justify-content:flex-end;position:relative;overflow:hidden}
+.card .n{position:absolute;top:18px;left:22px;font-family:'Arial Black',sans-serif;font-size:46px;
+  color:transparent;-webkit-text-stroke:1px #302d3a;line-height:1}
+.card h3{font-family:'Arial Black',sans-serif;font-size:18px;text-transform:uppercase;margin-bottom:8px}
+.card p{color:var(--muted);font-size:13.5px;line-height:1.6}
+.card .pr{margin-top:14px;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--acc)}
+
+.work{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:13px;margin-top:36px}
+.wc{position:relative;border-radius:15px;overflow:hidden;border:1px solid var(--line);background:#0a0a0f;
+  aspect-ratio:16/10;display:block;text-decoration:none;transition:border-color .4s}
+.wc:hover{border-color:rgba(255,255,255,.3)}
+.wc img{width:100%;height:100%;object-fit:cover;transform:scale(1.05);transition:transform 1s var(--ease),filter .6s;filter:saturate(.7)}
+.wc:hover img{transform:scale(1.14);filter:saturate(1.06)}
+.wc .v{position:absolute;inset:0;background:linear-gradient(to top,rgba(5,5,9,.96) 5%,transparent 58%)}
+.wc .m{position:absolute;left:0;right:0;bottom:0;padding:16px}
+.wc h4{font-family:'Arial Black',sans-serif;font-size:15px;text-transform:uppercase;color:var(--ink)}
+.wc p{color:var(--muted);font-size:10px;letter-spacing:.2em;text-transform:uppercase;margin-top:4px}
+
+.steps{margin-top:34px}
+.step{display:grid;grid-template-columns:78px 1fr auto;gap:22px;align-items:center;padding:19px 14px;
+  border-top:1px solid var(--line);position:relative}
+.step:last-child{border-bottom:1px solid var(--line)}
+.step::after{content:'';position:absolute;left:0;top:0;height:100%;width:2px;background:var(--acc);
+  transform:scaleY(0);transform-origin:top;transition:transform .45s var(--ease);
+  transition-delay:min(calc(var(--d,0)*1ms + 260ms),440ms)}
+.slide.active .step::after{transform:scaleY(1)}
+.step .n{font-family:'Arial Black',sans-serif;font-size:13px;color:var(--acc)}
+.step h4{font-family:'Arial Black',sans-serif;font-size:clamp(15px,1.8vw,22px);text-transform:uppercase}
+.step p{color:var(--muted);font-size:13.5px;margin-top:5px;max-width:620px;line-height:1.6}
+.step .day{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);white-space:nowrap}
+
+.plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(245px,1fr));gap:15px;margin-top:38px}
+.plan{background:#0b0b11;border:1px solid var(--line);border-radius:18px;padding:30px 24px;position:relative;overflow:hidden}
+.plan.hot{border-color:var(--acc);background:linear-gradient(170deg,rgba(232,176,75,.12),#0b0b11)}
+.plan .tg{position:absolute;top:16px;right:18px;font-size:9.5px;letter-spacing:.22em;text-transform:uppercase;
+  background:var(--acc);color:#0b0805;padding:6px 10px;border-radius:100px}
+.plan h4{font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.plan .v{font-family:'Arial Black',sans-serif;font-size:clamp(32px,4.2vw,50px);letter-spacing:-.04em;margin:12px 0 18px}
+.plan ul{list-style:none;display:grid;gap:9px}
+.plan li{display:flex;gap:10px;font-size:13px;color:#b4b0bb;line-height:1.5}
+.plan li::before{content:'→';color:var(--acc)}
+
+.why{display:grid;grid-template-columns:repeat(auto-fit,minmax(235px,1fr));gap:15px;margin-top:38px}
+.wy{padding:28px 24px;border:1px solid var(--line);border-radius:18px;background:#0a0a10;position:relative;overflow:hidden}
+.wy::before{content:'';position:absolute;top:0;left:0;width:100%;height:2px;
+  background:linear-gradient(90deg,var(--acc),transparent);transform:scaleX(0);transform-origin:left;
+  transition:transform .5s var(--ease);transition-delay:min(calc(var(--d,0)*1ms + 260ms),440ms)}
+.slide.active .wy::before{transform:scaleX(1)}
+.wy b{display:block;font-family:'Arial Black',sans-serif;font-size:14px;text-transform:uppercase;margin-bottom:9px;color:var(--acc)}
+.wy p{color:var(--muted);font-size:13.5px;line-height:1.65}
+
+.ct{display:flex;flex-direction:column;align-items:flex-start;gap:18px}
+.links{display:flex;gap:13px;flex-wrap:wrap;margin-top:10px}
+.btn{position:relative;display:inline-flex;align-items:center;gap:12px;padding:17px 34px;border-radius:100px;
+  font-size:12px;letter-spacing:.22em;text-transform:uppercase;text-decoration:none;border:1px solid var(--line);
+  background:transparent;color:var(--ink);overflow:hidden;cursor:pointer;transition:color .4s var(--ease)}
+.btn span{position:relative;z-index:2}
+.btn::before{content:'';position:absolute;inset:0;background:var(--acc);transform:translateY(101%);
+  transition:transform .5s var(--ease);border-radius:50% 50% 0 0}
+.btn:hover{color:#0b0805}.btn:hover::before{transform:none}
+.btn.p{background:var(--acc);color:#0b0805;border-color:var(--acc)}
+
+.help{position:fixed;inset:0;z-index:70;background:rgba(4,4,7,.94);backdrop-filter:blur(14px);display:grid;
+  place-items:center;opacity:0;visibility:hidden;transition:all .4s var(--ease)}
+.help.on{opacity:1;visibility:visible}
+.help-in{text-align:center;display:grid;gap:13px}
+.help h3{font-family:'Arial Black',sans-serif;font-size:clamp(22px,3.6vw,40px);text-transform:uppercase}
+.help p{color:var(--muted);font-size:14px}
+.help kbd{border:1px solid var(--line);border-radius:6px;padding:5px 10px;margin:0 4px;font:600 13px inherit;color:var(--ink)}
+
+/* intro */
+#intro{position:fixed;inset:0;z-index:80;background:#07070b;display:grid;place-items:center;
+  transition:clip-path .8s var(--ease),opacity .4s;overflow:hidden}
+#intro.gone{clip-path:inset(0 0 100% 0);opacity:0;pointer-events:none}
+.intro-in{display:flex;flex-direction:column;align-items:center;gap:20px;text-align:center}
+.intro-mark{width:0;height:1px;background:linear-gradient(90deg,transparent,var(--acc),transparent);opacity:0}
+#intro.play .intro-mark{animation:lineGrow .55s var(--ease) .05s both}
+.hello{display:flex;font-family:'Arial Black',sans-serif;font-size:clamp(24px,6vw,72px);
+  letter-spacing:.24em;text-transform:uppercase;color:var(--muted)}
+.hello span{display:inline-block;opacity:0;transform:translateY(-26px) rotateX(-70deg);filter:blur(8px)}
+#intro.play .hello span{animation:letterIn .42s var(--ease) both;animation-delay:calc(.28s + var(--i)*48ms)}
+#intro.play .hello.burst span{animation:letterOut .46s var(--ease) both;animation-delay:calc(var(--i)*20ms)}
+.name{font-family:'Arial Black',sans-serif;font-weight:900;text-transform:uppercase;
+  font-size:clamp(38px,11.5vw,160px);line-height:.9;letter-spacing:-.02em;opacity:0;
+  background:linear-gradient(180deg,#fff 28%,var(--acc));-webkit-background-clip:text;background-clip:text;
+  color:transparent;perspective:800px}
+#intro.play .name.on{animation:nameIn3d .8s var(--ease) both}
+.intro-sub{opacity:0;display:grid;gap:11px}
+#intro.play .intro-sub.on{animation:subIn .55s var(--ease) both}
+.intro-sub p{font-size:clamp(10px,1.4vw,13px);letter-spacing:.34em;text-transform:uppercase;color:var(--muted)}
+@keyframes lineGrow{from{width:0;opacity:0}to{width:min(300px,52vw);opacity:1}}
+@keyframes letterIn{from{opacity:0;transform:translateY(-26px) rotateX(-70deg);filter:blur(8px)}to{opacity:1;transform:none;filter:blur(0)}}
+@keyframes letterOut{from{opacity:1;transform:none;filter:blur(0)}
+  to{opacity:0;transform:translate(var(--tx,0),var(--ty,-40px)) rotate(var(--tr,20deg)) scale(.6);filter:blur(12px)}}
+@keyframes nameIn3d{0%{opacity:0;transform:rotateX(-75deg) scale(1.3);filter:blur(22px)}
+  62%{opacity:1}100%{opacity:1;transform:none;filter:blur(0)}}
+@keyframes subIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+
+.slide.tight{padding-top:clamp(70px,8.5vh,98px);padding-bottom:clamp(74px,9vh,98px)}
+.slide.tight .eyebrow{margin-bottom:15px}
+.slide.tight h2.big{font-size:clamp(28px,5vw,68px)}
+.slide.tight .lead{margin-top:16px;font-size:14px}
+.slide.tight .rule{margin-top:14px}
+.slide.tight .stats,.slide.tight .cards,.slide.tight .work,.slide.tight .plans,.slide.tight .why,.slide.tight .steps{margin-top:20px}
+.slide.tight .stat{padding:24px 20px}
+.slide.tight .card{min-height:195px;padding:22px 20px}
+.slide.tight .plan{padding:24px 20px}
+.slide.tight .step{padding:12px 12px}
+.slide.xtight{padding-top:clamp(60px,7.5vh,84px);padding-bottom:clamp(62px,7.5vh,84px)}
+.slide.xtight h2.big{font-size:clamp(24px,4.2vw,54px)}
+.slide.xtight .eyebrow{margin-bottom:11px}
+.slide.xtight .lead{margin-top:12px;font-size:13px}
+.slide.xtight .rule{margin-top:11px}
+.slide.xtight .stats,.slide.xtight .cards,.slide.xtight .work,.slide.xtight .plans,.slide.xtight .why,.slide.xtight .steps{margin-top:14px}
+.slide.xtight .stat{padding:19px 17px}
+.slide.xtight .stat b{font-size:clamp(24px,3.4vw,40px)}
+.slide.xtight .card{min-height:162px;padding:19px 17px}
+.slide.xtight .card h3{font-size:15px}
+.slide.xtight .card p{font-size:12px;line-height:1.5}
+.slide.xtight .plan{padding:19px 17px}
+.slide.xtight .plan .v{font-size:clamp(24px,3.2vw,38px);margin:8px 0 11px}
+.slide.xtight .step{padding:9px 11px}
+.slide.xtight .step h4{font-size:14px}
+.slide.xtight .step p{font-size:12px}
+
+@media (max-width:820px){ .dots{display:none} .step{grid-template-columns:1fr;gap:7px} .hint{display:none} }
+@media (prefers-reduced-motion:reduce){ *{animation-duration:.01ms!important;transition-duration:.01ms!important}
+  .a,.mask>span{opacity:1!important;transform:none!important} }
+</style>
+</head>
+<body class="locked">
+
+<div id="intro">
+  <div class="intro-in">
+    <div class="intro-mark"></div>
+    <div class="hello" id="hello"></div>
+    <h1 class="name" id="introName">Алексей</h1>
+    <div class="intro-sub" id="introSub">
+      <p>Web-дизайнер для барбершопов, салонов и студий</p>
+      <p>3D-версия презентации</p>
+    </div>
+  </div>
+</div>
+
+<canvas id="bg"></canvas>
+<div class="grain"></div><div class="vig"></div><div id="smear"></div>
+
+<div class="top">
+  <div class="brand"><i></i> Алексей · 3D</div>
+  <div class="dots" id="dots"></div>
+</div>
+
+<div class="stage" id="stage">
+  <section class="slide">
+    <div class="eyebrow a">Презентация услуг · 2026</div>
+    <h1 class="big">
+      <span class="mask"><span style="--d:100">Сайты,</span></span>
+      <span class="mask"><span style="--d:190">которые</span></span>
+      <span class="mask"><span style="--d:280"><em class="outline">записывают</em></span></span>
+    </h1>
+    <p class="lead a" style="--d:420">Барбершопы, салоны красоты, ногтевые и тату-студии.
+      Цены, работы и онлайн-запись в одном месте.</p>
+    <div class="rule" style="--d2:700"></div>
+    <div class="ts-sub a" style="--d:520">
+      <div><b>6</b>концептов</div><div><b>3–5</b>дней до запуска</div><div><b>7 000 ₽</b>минимальный лендинг</div>
+    </div>
+  </section>
+
+  <section class="slide">
+    <div class="eyebrow a">01 — Проблема</div>
+    <h2 class="big">
+      <span class="mask"><span style="--d:70">Красивый профиль</span></span>
+      <span class="mask"><span style="--d:150"><em class="outline">не приносит</em></span></span>
+      <span class="mask"><span style="--d:230">клиентов</span></span>
+    </h2>
+    <p class="lead a" style="--d:350">Подписчики есть, а точки, где человек решает «записаться» — нет.
+      Пока нет сайта, запись живёт в личке.</p>
+    <div class="rule" style="--d2:640"></div>
+    <div class="stats a" style="--d:440">
+      <div class="stat"><b data-count="68" data-suffix="%">0</b><span>уходят без записи</span></div>
+      <div class="stat"><b data-count="2" data-suffix="×">0</b><span>рост среднего чека</span></div>
+      <div class="stat"><b data-count="24" data-suffix="/7">0</b><span>клиент пишет в личку</span></div>
+      <div class="stat"><b data-count="0">0</b><span>сайтов у большинства</span></div>
+    </div>
+  </section>
+
+  <section class="slide">
+    <div class="eyebrow a">02 — Решение</div>
+    <h2 class="big">
+      <span class="mask"><span style="--d:70">Сайт, который</span></span>
+      <span class="mask"><span style="--d:150"><em class="outline">записывает</em></span></span>
+    </h2>
+    <div class="rule" style="--d2:560"></div>
+    <div class="cards a" style="--d:300">
+      <div class="card"><div class="n">01</div><h3>Видит цены</h3><p>Прайс на странице вместо переписки. Человек отсеивается сам.</p><div class="pr">без «а сколько стоит?»</div></div>
+      <div class="card"><div class="n">02</div><h3>Выбирает время</h3><p>Свободные окна онлайн. Яндекс Записи, 2ГИС или Telegram-бот.</p><div class="pr">без звонка и переписки</div></div>
+      <div class="card"><div class="n">03</div><h3>Остаётся в работе</h3><p>Фото, отзывы и адрес с картой. Причина вернуться и записаться снова.</p><div class="pr">средний чек и повторы</div></div>
+    </div>
+  </section>
+
+  <section class="slide">
+    <div class="eyebrow a">03 — Форматы</div>
+    <h2 class="big">
+      <span class="mask"><span style="--d:70">Четыре</span></span>
+      <span class="mask"><span style="--d:140"><em class="outline">формата</em></span></span>
+    </h2>
+    <div class="rule" style="--d2:540"></div>
+    <div class="cards a" style="--d:280">
+      <div class="card"><div class="n">01</div><h3>Лендинг</h3><p>Одна страница: услуги, цены, работы, форма записи.</p><div class="pr">от 7 000 ₽ · 3 дня</div></div>
+      <div class="card"><div class="n">02</div><h3>Сайт под ключ</h3><p>До 6 страниц, блог, галерея, SEO-разметка.</p><div class="pr">от 25 000 ₽ · 10 дней</div></div>
+      <div class="card"><div class="n">03</div><h3>Дизайн-концепт</h3><p>Визуальное направление до того, как потратишь деньги.</p><div class="pr">от 4 000 ₽ · 1 день</div></div>
+      <div class="card"><div class="n">04</div><h3>Онлайн-запись</h3><p>Подключение и настройка записи на твой домен или соцсеть.</p><div class="pr">от 3 500 ₽ · 1 день</div></div>
+    </div>
+  </section>
+
+  <section class="slide">
+    <div class="eyebrow a">04 — Работы</div>
+    <h2 class="big"><span class="mask"><span style="--d:70">Шесть <em class="outline">концептов</em></span></span></h2>
+    <div class="rule" style="--d2:520"></div>
+    <div class="work a" style="--d:220">
+      <a class="wc" href="https://morphlxngg.github.io/#/projects/prestige" target="_blank" rel="noopener">
+        <img src="/assets/images/prestige-cover.png" alt="Prestige"><div class="v"></div><div class="m"><h4>Prestige</h4><p>Барбершоп</p></div></a>
+      <a class="wc" href="https://morphlxngg.github.io/#/projects/day-hair" target="_blank" rel="noopener">
+        <img src="/assets/images/day-hair-cover.png" alt="Day Hair"><div class="v"></div><div class="m"><h4>Day Hair</h4><p>Салон красоты</p></div></a>
+      <a class="wc" href="https://morphlxngg.github.io/#/projects/pitstop" target="_blank" rel="noopener">
+        <img src="/assets/images/pitstop-cover.png" alt="Pitstop"><div class="v"></div><div class="m"><h4>Pitstop</h4><p>Автосервис</p></div></a>
+      <a class="wc" href="https://morphlxngg.github.io/concepts/arizona/" target="_blank" rel="noopener">
+        <img src="/assets/images/arizona-cover.svg" alt="Arizona"><div class="v"></div><div class="m"><h4>Arizona</h4><p>Тату · Казань</p></div></a>
+      <a class="wc" href="https://morphlxngg.github.io/concepts/pinky/" target="_blank" rel="noopener">
+        <img src="/assets/images/pinky-cover.svg" alt="Pinky"><div class="v"></div><div class="m"><h4>Pinky</h4><p>Маникюр</p></div></a>
+      <a class="wc" href="https://morphlxngg.github.io/concepts/detailing/" target="_blank" rel="noopener">
+        <img src="/assets/images/detailing-cover.svg" alt="Apex"><div class="v"></div><div class="m"><h4>Apex</h4><p>Детейлинг</p></div></a>
+    </div>
+  </section>
+
+  <section class="slide">
+    <div class="eyebrow a">05 — Процесс</div>
+    <h2 class="big"><span class="mask"><span style="--d:70">Пять <em class="outline">дней</em></span></span></h2>
+    <div class="rule" style="--d2:500"></div>
+    <div class="steps a" style="--d:200">
+      <div class="step"><div class="n">01</div><div><h4>Бриф</h4><p>15 минут: ниша, услуги, цены, кто клиент.</p></div><div class="day">День 1</div></div>
+      <div class="step"><div class="n">02</div><div><h4>Концепт</h4><p>Визуальное направление и структура. Смотришь и говоришь «да».</p></div><div class="day">День 1</div></div>
+      <div class="step"><div class="n">03</div><div><h4>Дизайн и тексты</h4><p>Макеты, фото, формулировки. Пишу сам.</p></div><div class="day">День 2–3</div></div>
+      <div class="step"><div class="n">04</div><div><h4>Разработка</h4><p>Вёрстка, адаптив, запись, аналитика.</p></div><div class="day">День 3–4</div></div>
+      <div class="step"><div class="n">05</div><div><h4>Запуск</h4><p>Публикую, проверяю, ставлю в Яндекс и 2ГИС.</p></div><div class="day">День 5</div></div>
+    </div>
+  </section>
+
+  <section class="slide">
+    <div class="eyebrow a">06 — Цены</div>
+    <h2 class="big">
+      <span class="mask"><span style="--d:70">Фиксированная цена.</span></span>
+      <span class="mask"><span style="--d:150"><em class="outline">Без сюрпризов</em></span></span>
+    </h2>
+    <div class="rule" style="--d2:520"></div>
+    <div class="plans a" style="--d:280">
+      <div class="plan"><h4>Концепт</h4><div class="v">4 000 ₽</div>
+        <ul><li>Визуальное направление</li><li>Структура страниц</li><li>1 экран в высоком разрешении</li></ul></div>
+      <div class="plan hot"><span class="tg">Чаще всего</span><h4>Лендинг</h4><div class="v">7 000 ₽</div>
+        <ul><li>Одна страница под задачу</li><li>Цены, работы, форма записи</li><li>Адаптив под телефон</li><li>Запуск за 3 дня</li></ul></div>
+      <div class="plan"><h4>Сайт под ключ</h4><div class="v">25 000 ₽</div>
+        <ul><li>До 6 страниц</li><li>Блог и галерея</li><li>Онлайн-запись</li><li>SEO и аналитика</li></ul></div>
+    </div>
+  </section>
+
+  <section class="slide">
+    <div class="eyebrow a">07 — Почему я</div>
+    <h2 class="big">
+      <span class="mask"><span style="--d:70">Работаю</span></span>
+      <span class="mask"><span style="--d:150"><em class="outline">с бьюти-бизнесом</em></span></span>
+    </h2>
+    <div class="rule" style="--d2:520"></div>
+    <div class="why a" style="--d:280">
+      <div class="wy"><b>Ниша</b><p>Барбершопы, салоны, ногти, тату. Знаю индустрию изнутри.</p></div>
+      <div class="wy"><b>Скорость</b><p>Лендинг — 3 дня. Не месяц на согласование.</p></div>
+      <div class="wy"><b>Тексты сам</b><p>Пишу так, как говоришь ты, только чётче.</p></div>
+      <div class="wy"><b>Запись сразу</b><p>Сайт без записи — просто визитка. Подключаю в тот же день.</p></div>
+    </div>
+  </section>
+
+  <section class="slide">
+    <div class="ct">
+      <div class="eyebrow a">08 — Контакты</div>
+      <h2 class="big">
+        <span class="mask"><span style="--d:70">Давай</span></span>
+        <span class="mask"><span style="--d:150"><em class="outline">сделаем</em></span></span>
+      </h2>
+      <p class="lead a" style="--d:260">Напиши — отвечу в течение дня. Скажи нишу и задачу, пришлю
+        бесплатный мини-концепт под тебя.</p>
+      <div class="rule" style="--d2:560"></div>
+      <div class="links a" style="--d:400">
+        <a class="btn p" href="https://t.me/morphlxng" target="_blank" rel="noopener"><span>Telegram @morphlxng</span></a>
+        <a class="btn" href="mailto:nevizhin40@gmail.com"><span>nevizhin40@gmail.com</span></a>
+        <a class="btn" href="https://morphlxngg.github.io/" target="_blank" rel="noopener"><span>Портфолио</span></a>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="hint" id="hint">Тащи мышкой влево/вправо · <kbd>T</kbd> сменить переход</div>
+
+<div class="bottom">
+  <div class="nav">
+    <button class="nb" id="prev">←</button>
+    <button class="nb" id="next">→</button>
+    <button class="nb mode" id="mode" title="Сменить переход (T)">FLIP</button>
+    <div class="ring" id="ring" title="Автопереключение"><span id="ringIcon">⏸</span></div>
+  </div>
+  <div class="counter"><b id="cur">01</b> / <span id="tot">09</span></div>
+</div>
+<button class="tmode" id="tmode">переход: FLIP</button>
+
+<div class="help" id="help"><div class="help-in">
+  <h3>Управление</h3>
+  <p><kbd>→</kbd><kbd>Space</kbd> вперёд &nbsp; <kbd>←</kbd> назад</p>
+  <p><kbd>1</kbd>…<kbd>9</kbd> к слайду &nbsp; <kbd>Home</kbd><kbd>End</kbd></p>
+  <p><kbd>T</kbd> сменить переход · <kbd>A</kbd> автопоказ</p>
+  <p><kbd>F</kbd> полный экран &nbsp;·&nbsp; тяни мышкой или свайп</p>
+  <p style="color:#5b5765"><kbd>?</kbd> или <kbd>Esc</kbd> закрыть</p>
+</div></div>
+
+<script>
+(() => {
+'use strict';
+const $ = (s, c = document) => c.querySelector(s);
+const $$ = (s, c = document) => [...c.querySelectorAll(s)];
+const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const pad = (n) => String(n).padStart(2, '0');
+
+const slides = $$('.slide');
+const stage = $('#stage');
+const total = slides.length;
+$('#tot').textContent = pad(total);
+let idx = 0, busy = false;
+let introRunning = false;      // declared early: autoplay tick() reads it
+let introTimers = [];
+
+const MODES = [
+  { id: 'flip', label: 'FLIP', out: 'flip-out', in: 'flip-in' },
+  { id: 'zoom', label: 'ZOOM', out: 'zoom-out', in: 'zoom-in' },
+];
+let modeIx = 0;
+const MODE = () => MODES[modeIx];
+
+const ACCENTS = ['#e8b04b', '#f0a63c', '#e8705c', '#d76fc4', '#a97bf0', '#6fb0f0', '#4fc9a8', '#e8b04b', '#e8b04b'];
+const setAccent = (i) => {
+  const c = ACCENTS[i % ACCENTS.length];
+  document.documentElement.style.setProperty('--acc', c);
+};
+
+/* dots */
+const dots = $('#dots');
+slides.forEach((_, i) => {
+  const d = document.createElement('div');
+  d.className = 'dot';
+  d.addEventListener('click', () => go(i));
+  dots.appendChild(d);
+});
+const dotEls = $$('.dot');
+
+function countUp(el) {
+  const target = parseFloat(el.dataset.count), suf = el.dataset.suffix || '';
+  if (REDUCED) { el.textContent = target + suf; return; }
+  const t0 = performance.now(), dur = 900;
+  const step = (now) => {
+    const k = Math.min(1, (now - t0) / dur);
+    el.textContent = Math.round(target * (1 - Math.pow(1 - k, 3))) + suf;
+    if (k < 1) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+
+function smear() {
+  const s = $('#smear');
+  s.animate([{ opacity: 0 }, { opacity: .9, offset: .35 }, { opacity: 0 }],
+    { duration: 620, easing: 'cubic-bezier(.16,1,.3,1)' });
+}
+
+function show(i, dir) {
+  if (busy || i === idx) return;
+  busy = true;
+  dir = dir || (i > idx ? 1 : -1);
+  const from = slides[idx], to = slides[i];
+  const M = MODE();
+  const suffix = dir > 0 ? 'fwd' : 'back';
+
+  from.classList.remove(...ANIM);
+  to.classList.remove(...ANIM);
+  void from.offsetWidth;
+
+  from.classList.add(`${M.out}-${suffix}`);
+  to.classList.add(`${M.in}-${suffix}`);
+  from.classList.remove('active');
+  to.classList.add('active');
+
+  $$('.a, .mask > span', to).forEach(el => { el.style.transition = 'none'; void el.offsetWidth; el.style.transition = ''; });
+  $$('[data-count]', to).forEach(el => setTimeout(() => countUp(el), 420));
+
+  idx = i;
+  setAccent(i);
+  sync();
+  smear();
+  location.hash = 's' + (i + 1);
+  resetAuto();
+
+  setTimeout(() => {
+    slides.forEach(s => s.classList.remove(...ANIM));
+    busy = false;
+  }, REDUCED ? 30 : 720);
+}
+
+const ANIM = ['flip-out-fwd','flip-out-back','flip-in-fwd','flip-in-back',
+              'zoom-out-fwd','zoom-out-back','zoom-in-fwd','zoom-in-back'];
+
+function sync() {
+  dotEls.forEach((d, i) => d.classList.toggle('on', i === idx));
+  $('#cur').textContent = pad(idx + 1);
+  $('#prev').disabled = idx === 0;
+  $('#next').disabled = idx === total - 1;
+}
+
+const go = (i) => show(i);
+const next = () => show(idx + 1 >= total ? 0 : idx + 1, 1);
+const prev = () => show(idx - 1 < 0 ? total - 1 : idx - 1, -1);
+
+function setMode(ix) {
+  modeIx = (ix + MODES.length) % MODES.length;
+  const M = MODE();
+  $('#mode').textContent = M.label;
+  $('#tmode').textContent = 'переход: ' + M.label;
+}
+$('#prev').addEventListener('click', prev);
+$('#next').addEventListener('click', next);
+$('#mode').addEventListener('click', () => setMode(modeIx + 1));
+$('#tmode').addEventListener('click', () => setMode(modeIx + 1));
+
+/* ---------- autoplay ---------- */
+const AUTO_MS = 6000;
+let auto = true, autoT0 = performance.now(), hidden = false, helpOpen = false;
+const ring = $('#ring'), ringIcon = $('#ringIcon');
+function autoActive() { return auto && !hidden && !helpOpen && !busy && !introRunning; }
+function resetAuto() { autoT0 = performance.now(); }
+function setAuto(v) {
+  auto = v; ring.classList.toggle('paused', !auto); ringIcon.textContent = auto ? '⏸' : '▶'; resetAuto();
+}
+ring.addEventListener('click', () => setAuto(!auto));
+(function tick() {
+  if (autoActive()) {
+    const k = Math.min(1, (performance.now() - autoT0) / AUTO_MS);
+    ring.style.setProperty('--p', (k * 360).toFixed(1) + 'deg');
+    if (k >= 1) next();
+  } else ring.style.setProperty('--p', '0deg');
+  requestAnimationFrame(tick);
+})();
+document.addEventListener('visibilitychange', () => { hidden = document.hidden; if (!hidden) resetAuto(); });
+
+/* ---------- drag to flip ---------- */
+let dragging = false, sx = 0, sy = 0, moved = false;
+stage.addEventListener('pointerdown', (e) => {
+  if (e.button !== 0 || e.target.closest('a,button')) return;
+  dragging = true; moved = false; sx = e.clientX; sy = e.clientY;
+  stage.classList.add('dragging');
+});
+addEventListener('pointermove', (e) => {
+  if (!dragging) return;
+  const dx = e.clientX - sx, dy = e.clientY - sy;
+  if (Math.abs(dx) > 6 && Math.abs(dx) > Math.abs(dy)) moved = true; else return;
+  const cur = slides[idx];
+  const p = Math.max(-1, Math.min(1, dx / (innerWidth * .5)));
+  cur.style.transition = 'none';
+  cur.style.transformOrigin = dx < 0 ? 'left center' : 'right center';
+  cur.style.transform = `translateX(${dx * .55}px) rotateY(${dx * .07}deg)`;
+  cur.style.filter = `blur(${Math.abs(dx) / 42}px)`;
+  e.preventDefault();
+});
+addEventListener('pointerup', () => {
+  if (!dragging) return;
+  dragging = false;
+  stage.classList.remove('dragging');
+  const cur = slides[idx];
+  const t = cur.style.transform || '';
+  const m = /translateX\((-?[\d.]+)px\)/.exec(t);
+  const dx = m ? parseFloat(m[1]) : 0;
+  cur.style.transition = '';
+  cur.style.transform = ''; cur.style.filter = '';
+  if (Math.abs(dx) > 90) (dx < 0 ? next : prev)();
+});
+
+/* swipe for touch */
+let tx = 0, ty = 0;
+addEventListener('touchstart', (e) => { tx = e.changedTouches[0].clientX; ty = e.changedTouches[0].clientY; }, { passive: true });
+addEventListener('touchend', (e) => {
+  const dx = e.changedTouches[0].clientX - tx, dy = e.changedTouches[0].clientY - ty;
+  if (Math.abs(dx) > 70 && Math.abs(dx) > Math.abs(dy)) (dx < 0 ? next : prev)();
+}, { passive: true });
+
+/* wheel */
+let wlock = false;
+addEventListener('wheel', (e) => {
+  if (wlock) return;
+  const d = Math.abs(e.deltaY) > Math.abs(e.deltaX) ? e.deltaY : e.deltaX;
+  if (Math.abs(d) < 32) return;
+  wlock = true; setTimeout(() => { wlock = false; }, REDUCED ? 160 : 420);
+  (d > 0 ? next : prev)();
+}, { passive: true });
+
+stage.addEventListener('click', (e) => {
+  if (moved || introRunning) { moved = false; return; }
+  if (e.target.closest('a,button,.dot,.nb,.ring')) return;
+  if (e.clientX < innerWidth * .1) prev(); else next();
+});
+
+addEventListener('keydown', (e) => {
+  if (introRunning) return;
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  const k = e.key;
+  if (k === 'ArrowRight' || k === 'PageDown' || k === ' ' || k === 'Enter') { e.preventDefault(); next(); }
+  else if (k === 'ArrowLeft' || k === 'PageUp' || k === 'Backspace') { e.preventDefault(); prev(); }
+  else if (k === 'Home') { e.preventDefault(); go(0); }
+  else if (k === 'End') { e.preventDefault(); go(total - 1); }
+  else if (k === 't' || k === 'T' || k === 'е' || k === 'Е') { e.preventDefault(); setMode(modeIx + 1); }
+  else if (k === 'a' || k === 'A' || k === 'ф' || k === 'Ф') { e.preventDefault(); setAuto(!auto); }
+  else if (k === '?' || k === '/') { e.preventDefault(); helpOpen = !helpOpen; $('#help').classList.toggle('on', helpOpen); resetAuto(); }
+  else if (k === 'Escape') { helpOpen = false; $('#help').classList.remove('on'); resetAuto(); }
+  else if (k === 'f' || k === 'F' || k === 'а' || k === 'А') {
+    e.preventDefault();
+    document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen().catch(() => {});
+  }
+  else if (/^[1-9]$/.test(k)) { e.preventDefault(); go(parseInt(k, 10) - 1); }
+});
+
+/* particles */
+(function () {
+  const cv = $('#bg'), ctx = cv.getContext('2d');
+  let w, h, pts = [];
+  function resize() {
+    const dpr = Math.min(devicePixelRatio || 1, 2);
+    w = innerWidth; h = innerHeight;
+    cv.width = w * dpr; cv.height = h * dpr;
+    cv.style.width = w + 'px'; cv.style.height = h + 'px';
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    pts = Array.from({ length: Math.min(58, Math.round(w / 28)) }, () => ({
+      x: Math.random() * w, y: Math.random() * h,
+      vx: (Math.random() - .5) * .3, vy: (Math.random() - .5) * .3, r: Math.random() * 1.5 + .4
+    }));
+  }
+  addEventListener('resize', resize, { passive: true });
+  resize();
+  (function frame() {
+    ctx.clearRect(0, 0, w, h);
+    for (const p of pts) {
+      p.x += p.vx; p.y += p.vy;
+      if (p.x < -20) p.x = w + 20; if (p.x > w + 20) p.x = -20;
+      if (p.y < -20) p.y = h + 20; if (p.y > h + 20) p.y = -20;
+      ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, 6.2832);
+      ctx.fillStyle = 'rgba(232,176,75,.45)'; ctx.fill();
+    }
+    for (let i = 0; i < pts.length; i++) for (let j = i + 1; j < pts.length; j++) {
+      const a = pts[i], b = pts[j], d = Math.hypot(a.x - b.x, a.y - b.y);
+      if (d < 118) {
+        ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y);
+        ctx.strokeStyle = 'rgba(150,140,180,' + (0.1 * (1 - d / 118)).toFixed(3) + ')';
+        ctx.lineWidth = 1; ctx.stroke();
+      }
+    }
+    requestAnimationFrame(frame);
+  })();
+})();
+
+/* intro */
+const intro = $('#intro');
+function buildHello() {
+  $('#hello').innerHTML = [...'ПРИВЕТ'].map((c, i) => {
+    const tx = Math.round(Math.random() * 180 - 90);
+    const ty = Math.round(Math.random() * 120 - 70);
+    const tr = Math.round(Math.random() * 80 - 40);
+    return `<span style="--i:${i};--tx:${tx}px;--ty:${ty}px;--tr:${tr}deg">${c}</span>`;
+  }).join('');
+}
+function startDeck() {
+  const s = slides[Math.max(0, idx)];
+  $$('[data-count]', s).forEach(el => setTimeout(() => countUp(el), 420));
+  setTimeout(() => { const el = $('#hint'); if (el) el.style.opacity = '0'; }, 6500);
+  resetAuto();
+}
+function hideIntro() {
+  introRunning = false;
+  intro.classList.add('gone');
+  document.body.classList.remove('locked');
+  startDeck();
+  setTimeout(() => { intro.style.display = 'none'; }, 900);
+}
+function endIntro() {
+  introTimers.forEach(clearTimeout); introTimers = [];
+  if (!introRunning) return;
+  hideIntro();
+}
+function playIntro() {
+  intro.style.display = '';
+  intro.classList.remove('gone');
+  $('#hello').classList.remove('burst');
+  $('#introName').classList.remove('on');
+  $('#introSub').classList.remove('on');
+  void intro.offsetWidth;
+  intro.classList.add('play');
+  introRunning = true;
+  document.body.classList.add('locked');
+  buildHello();
+  const T = (ms, fn) => introTimers.push(setTimeout(fn, ms));
+  T(1050, () => $('#hello').classList.add('burst'));
+  T(1200, () => $('#introName').classList.add('on'));
+  T(1850, () => $('#introSub').classList.add('on'));
+  T(2450, () => endIntro());
+}
+intro.addEventListener('click', () => endIntro());
+addEventListener('keydown', (e) => { if (introRunning) { e.preventDefault(); endIntro(); } }, true);
+
+/* auto-fit */
+function contentHeight(s) {
+  let g = 0;
+  [...s.children].forEach(c => {
+    const cs = getComputedStyle(c);
+    g += c.offsetHeight + parseFloat(cs.marginTop || 0) + parseFloat(cs.marginBottom || 0);
+  });
+  const cs = getComputedStyle(s);
+  return g + parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom);
+}
+function fitSlides() {
+  const vh = innerHeight;
+  slides.forEach(s => {
+    s.classList.remove('tight', 'xtight');
+    const over = contentHeight(s) - vh;
+    if (over > 0) s.classList.add(over > vh * 0.16 ? 'xtight' : 'tight');
+  });
+}
+
+/* boot */
+const h = parseInt((location.hash || '').replace('#s', ''), 10);
+const start = Number.isFinite(h) ? Math.max(0, Math.min(total - 1, h - 1)) : 0;
+slides[0].classList.remove('active');
+slides[start].classList.add('active');
+idx = start;
+setAccent(start);
+setMode(0);
+sync();
+fitSlides();
+
+if (REDUCED || /^#s\d+$/.test(location.hash)) {
+  intro.style.display = 'none';
+  document.body.classList.remove('locked');
+  startDeck();
+} else playIntro();
+
+let fitTimer;
+const scheduleFit = (d) => { clearTimeout(fitTimer); fitTimer = setTimeout(fitSlides, d); };
+addEventListener('resize', () => scheduleFit(180), { passive: true });
+addEventListener('load', () => scheduleFit(60));
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => scheduleFit(40));
+$$('img').forEach(im => { if (!im.complete) im.addEventListener('load', () => scheduleFit(50), { once: true }); });
+setTimeout(fitSlides, 500);
+setTimeout(fitSlides, 1500);
+})();
+</script>
+</body>
+</html>
