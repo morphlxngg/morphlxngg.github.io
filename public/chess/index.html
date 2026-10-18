@@ -88,8 +88,8 @@
   }
   .sq.light{background:var(--light);}
   .sq.dark{background:var(--dark);}
-  .sq.last{box-shadow:inset 0 0 0 100px rgba(246,206,86,.34);}
-  .sq.sel{box-shadow:inset 0 0 0 100px rgba(88,146,86,.42);}
+  .sq.last{box-shadow:inset 0 0 0 100px rgba(246,206,86,.3);}
+  .sq.sel{box-shadow:inset 0 0 0 3px rgba(56,102,62,.95), inset 0 0 0 100px rgba(120,180,120,.26);}
   .sq.check{background-image:radial-gradient(circle at 50% 50%, rgba(198,62,46,.9) 0%, rgba(198,62,46,.55) 42%, rgba(198,62,46,0) 72%);}
   .sq[data-file]::before{
     content:attr(data-file);
@@ -111,18 +111,21 @@
   .sq.dot::after{
     content:"";
     position:absolute;
-    width:26%;height:26%;
+    width:30%;height:30%;
     border-radius:50%;
-    background:rgba(44,54,38,.28);
+    background:rgba(46,62,44,.45);
+    box-shadow:0 0 0 1.5px rgba(255,255,255,.6), 0 1px 3px rgba(0,0,0,.25);
     z-index:1;
     pointer-events:none;
   }
   .sq.cap::after{
     content:"";
     position:absolute;
-    inset:7%;
+    inset:6%;
     border-radius:50%;
-    box-shadow:inset 0 0 0 4px rgba(44,54,38,.28);
+    border:4px solid rgba(46,62,44,.45);
+    box-shadow:0 0 0 2px rgba(255,255,255,.55);
+    box-sizing:border-box;
     z-index:1;
     pointer-events:none;
   }
@@ -191,15 +194,15 @@
     box-shadow:0 1px 0 rgba(255,255,255,.9) inset, 0 10px 26px -18px rgba(72,54,26,.55), 0 0 0 1px rgba(120,98,60,.13);
   }
   .turn-row{display:flex;align-items:center;gap:9px;}
-  .dot{
+  .turn-dot{
     width:11px;height:11px;border-radius:50%;
     background:#fff;
     border:1.5px solid #3a332a;
     flex:0 0 auto;
     box-shadow:0 1px 2px rgba(0,0,0,.2);
   }
-  .dot.black{background:#2a251f;border-color:#2a251f;}
-  .dot.thinking{animation:pulse 1s infinite ease-in-out;}
+  .turn-dot.black{background:#2a251f;border-color:#2a251f;}
+  .turn-dot.thinking{animation:pulse 1s infinite ease-in-out;}
   @keyframes pulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(.72);opacity:.55}}
   #status{font-size:15px;font-weight:600;letter-spacing:-.2px;}
   .cap-line{display:flex;gap:8px;align-items:baseline;margin-top:7px;font-size:11.5px;color:var(--muted);}
@@ -346,7 +349,7 @@
   <aside class="side">
     <div class="card">
       <div class="turn-row">
-        <span class="dot" id="turnDot"></span>
+        <span class="turn-dot" id="turnDot"></span>
         <span id="status">Ход белых</span>
       </div>
       <div class="cap-line">
@@ -1057,7 +1060,7 @@ function insufficientMaterial(s){
   }
 
   function updateInfo(){
-    turnDot.className = 'dot' + (state.turn === B ? ' black' : '') + (thinking ? ' thinking' : '');
+    turnDot.className = 'turn-dot' + (state.turn === B ? ' black' : '') + (thinking ? ' thinking' : '');
 
     if(!gameOver){
       if(thinking) statusEl.textContent = 'Думаю…';
